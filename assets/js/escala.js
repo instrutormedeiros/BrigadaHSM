@@ -6,12 +6,13 @@ const EscalaApp = {
         const now = new Date();
         if(now.getFullYear() === DB.config.year) this.currentMonth = now.getMonth();
         
-        const saved = localStorage.getItem('hsm_teams_data_fix_v2');
+        const saved = localStorage.getItem('hsm_teams_data_fix_v3');
         if (saved) {
             this.teams = JSON.parse(saved);
         } else {
-            this.teams = JSON.parse(JSON.stringify(DB.defaultTeam));
+            this.teams = JSON.parse(JSON.stringify(DB.teams));
         }
+        // Correção Crítica: Expandir arrays para evitar repetição por referência
         this.expandPatterns(this.teams.day);
         this.expandPatterns(this.teams.night);
         this.render();
@@ -20,7 +21,8 @@ const EscalaApp = {
 
     expandPatterns(teamList) {
         teamList.forEach(member => {
-            if (member.ptr.length < 28) {
+            // Se o array for curto (padrão inicial), expande para 32 dias únicos
+            if (member.ptr.length < 32) {
                 const newPtr = [];
                 for (let i = 0; i < 32; i++) {
                     newPtr.push(member.ptr[i % member.ptr.length]);
@@ -31,7 +33,7 @@ const EscalaApp = {
     },
 
     saveData() {
-        localStorage.setItem('hsm_teams_data_fix_v2', JSON.stringify(this.teams));
+        localStorage.setItem('hsm_teams_data_fix_v3', JSON.stringify(this.teams));
         this.initDashboardWidget();
     },
 
@@ -57,7 +59,7 @@ const EscalaApp = {
 
     resetMonth() {
         if(confirm("Resetar escala para o padrão?")) {
-            localStorage.removeItem('hsm_teams_data_fix_v2');
+            localStorage.removeItem('hsm_teams_data_fix_v3');
             location.reload();
         }
     },
@@ -92,9 +94,11 @@ const EscalaApp = {
             
             let currentWd = startDay;
             for(let i=0; i<daysTotal; i++) {
+                // Usa índice direto, pois o array já foi expandido
                 const code = person.ptr[i] !== undefined ? person.ptr[i] : 2;
                 const st = DB.config.status.find(s => s.code === code) || DB.config.status[2];
                 const isWeekend = (currentWd===0 || currentWd===6);
+                
                 html += `<td class="cell-status ${st.class} ${isWeekend && code !== 3 ? 'weekend-col' : ''}"
                              onclick="EscalaApp.toggle('${type}', ${pIdx}, ${i})">
                              ${st.label}
@@ -107,6 +111,7 @@ const EscalaApp = {
 
         tbody.innerHTML += `<tr><td colspan="${daysTotal+2}" class="section-header-row">EQUIPE DIURNA (DIA)</td></tr>`;
         this.teams.day.forEach((p, i) => tbody.innerHTML += createRow(p, 'day', i));
+        
         tbody.innerHTML += `<tr><td colspan="${daysTotal+2}" class="section-header-row">EQUIPE NOTURNA (NOITE)</td></tr>`;
         this.teams.night.forEach((p, i) => tbody.innerHTML += createRow(p, 'night', i));
 
@@ -114,14 +119,14 @@ const EscalaApp = {
     },
 
     renderFooter() {
-        const tasksDefault = ["Hidrantes","Bombas","Portas Emerg.","Aterramento","Portas","Hidrantes","Aterramento","Luminárias","Bombas"];
+        const tasksDefault = ["Hidrantes de Parede","Bombas de Incêndio","Portas de Emergência","Aterramento e SPDA","Portas de Emergência","Hidrantes de Parede","Aterramento e SPDA","Luminárias de Emergência","Bombas de Incêndio"];
         const allStaff = [...this.teams.day, ...this.teams.night];
         
         const createList = (listId, withTask) => {
             const container = document.getElementById(listId);
             container.innerHTML = allStaff.map((p, i) => `
                 <div class="task-row">
-                    <span class="task-name">${p.name}</span>
+                    <span class="task-name">${p.name.split(' ')[0]}</span>
                     <span class="task-desc" contenteditable="true" id="${listId}_t_${p.id}" onblur="GlobalManager.save(this)">${withTask ? (tasksDefault[i] || "") : ""}</span>
                 </div>
             `).join("");
@@ -132,7 +137,6 @@ const EscalaApp = {
         GlobalManager.init();
     },
 
-    // Widget do Dashboard Inicial
     initDashboardWidget() {
         const now = new Date();
         const day = now.getDate();
@@ -142,31 +146,37 @@ const EscalaApp = {
         document.getElementById('dashboardDate').innerHTML = `HOSPITAL SANTA MARTA<br><span style="color:#1e293b; font-size:14px;">${weekNames[now.getDay()]}, ${day} DE ${DB.config.months[monthIdx].substring(0,3)}</span>`;
         document.getElementById('shiftLabel').innerText = `Equipe do dia ${day}/${monthIdx+1}`;
 
-        const dayIndex = day - 1;
+        const dayIndex = day - 1; 
         const activeTeam = [];
         
-        // Função auxiliar para checar status
-        const check = (list, role) => {
-            list.forEach(m => {
-                const s = m.ptr[dayIndex] !== undefined ? m.ptr[dayIndex] : 2;
-                if(s === 0 || s === 1) activeTeam.push({...m, role});
+        const checkTeam = (list, typeLabel) => {
+            list.forEach(member => {
+                const statusVal = member.ptr[dayIndex] !== undefined ? member.ptr[dayIndex] : 2;
+                if (statusVal === 0 || statusVal === 1) {
+                    activeTeam.push({ ...member, role: typeLabel });
+                }
             });
         };
-        
-        check(this.teams.day, "Brigadista (Dia)");
-        check(this.teams.night, "Brigadista (Noite)");
+
+        checkTeam(this.teams.day, "Brigadista (Dia)");
+        checkTeam(this.teams.night, "Brigadista (Noite)");
 
         const container = document.getElementById('teamListContainer');
         container.innerHTML = "";
-        if(activeTeam.length === 0) container.innerHTML = "<div style='text-align:center; font-size:12px; opacity:0.7;'>Ninguém escalado.</div>";
-        else {
+        if(activeTeam.length === 0) {
+            container.innerHTML = "<div style='text-align:center; font-size:12px; opacity:0.7;'>Ninguém escalado hoje.</div>";
+        } else {
             activeTeam.forEach(p => {
                 const initials = p.name.split(" ").map(n=>n[0]).join("").substring(0,2);
                 container.innerHTML += `
                     <div class="team-member">
-                        <img src="https://ui-avatars.com/api/?name=${initials}&background=random&color=fff">
-                        <div style="line-height:1.2;"><h6 style="font-size:13px; font-weight:600;">${p.name.split(" ")[0]}</h6><span style="font-size:10px; opacity:0.7;">${p.role}</span></div>
-                    </div>`;
+                        <img src="https://ui-avatars.com/api/?name=${initials}&background=random&color=fff" alt="${p.name}">
+                        <div style="line-height:1.2;">
+                            <h6 style="font-size:13px; font-weight:600;">${p.name.split(" ")[0] + " " + (p.name.split(" ")[1] || "")}</h6>
+                            <span style="font-size:10px; opacity:0.7;">${p.id} • ${p.role}</span>
+                        </div>
+                    </div>
+                `;
             });
         }
     }
