@@ -40,11 +40,11 @@ const IndicadoresApp = {
         const container = document.getElementById('indicadores-content');
         const data = DB.indicadores[this.state.year];
         
-        // 1. OVERVIEW
         if(this.state.tab === 'overview') {
+            const lastIdx = data.conformidade.values.length - 1;
             container.innerHTML = `
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-lg:tw-grid-cols-4 tw-gap-4 tw-mb-6">
-                    ${this.kpiHtml('Conformidade', data.conformidade.values.slice(-1)[0] + '%', 'ph-shield-check', 'tw-text-blue-600')}
+                    ${this.kpiHtml('Conformidade', data.conformidade.values[lastIdx] + '%', 'ph-shield-check', 'tw-text-blue-600')}
                     ${this.kpiHtml('Obstruções', '8 Itens', 'ph-warning-circle', 'tw-text-orange-500')}
                     ${this.kpiHtml('Evacuação', '03:05', 'ph-timer', 'tw-text-emerald-500')}
                     ${this.kpiHtml('Brigada', '55/109', 'ph-users-three', 'tw-text-purple-500')}
@@ -62,10 +62,7 @@ const IndicadoresApp = {
                     </div>
                 </div>`;
             this.renderChart('chartConformidade', 'line', data.conformidade.labels, data.conformidade.values, '#2563eb');
-        }
-        
-        // 2. CONFORMIDADE
-        else if (this.state.tab === 'conformidade') {
+        } else if (this.state.tab === 'conformidade') {
             container.innerHTML = `
                 <div class="tw-grid tw-grid-cols-1 tw-gap-6">
                     <div class="tw-bg-white tw-p-6 tw-rounded-xl tw-border tw-border-slate-200">
@@ -87,10 +84,7 @@ const IndicadoresApp = {
                     options: { responsive: true, maintainAspectRatio: false }
                 });
             }, 50);
-        }
-
-        // 3. EVACUAÇÃO
-        else if (this.state.tab === 'evacuacao') {
+        } else {
             container.innerHTML = `
                 <div class="tw-bg-white tw-p-6 tw-rounded-xl tw-border tw-border-slate-200">
                     <div class="tw-flex tw-justify-between tw-mb-4">
