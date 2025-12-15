@@ -9,16 +9,12 @@
     <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            prefix: 'tw-',
-            corePlugins: { preflight: false } // Evita conflito com CSS nativo
-        }
+        tailwind.config = { prefix: 'tw-', corePlugins: { preflight: false } }
     </script>
+
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -65,25 +61,34 @@
                     <div id="dashboardDate" style="font-size: 12px; text-align: right;"></div>
                 </div>
             </div>
+
             <div class="top-grid">
                 <div class="welcome-card">
                     <h2 contenteditable="true" id="dash_welcome_title" onblur="GlobalManager.save(this)">Olá, Chefe Medeiros</h2>
-                    <p contenteditable="true" id="dash_welcome_msg" onblur="GlobalManager.save(this)">O sistema está sincronizado.</p>
+                    <p contenteditable="true" id="dash_welcome_msg" onblur="GlobalManager.save(this)">Resumo operacional consolidado.</p>
                 </div>
                 <div class="card relative">
-                    <div class="metric-label">Extintores Vencendo</div>
-                    <div class="metric-val">3 <span class="warning-text">Setor UTI</span></div>
+                    <div class="metric-label">Conformidade (Dez)</div>
+                    <div class="metric-val" style="color: #2563eb;">96.3%</div>
+                    <div class="metric-sub" style="color: #10b981;">Meta Atingida</div>
+                    <i class="fas fa-shield-alt icon-corner"></i>
+                </div>
+                <div class="card relative">
+                    <div class="metric-label">Obstruções Ativas</div>
+                    <div class="metric-val" style="color: #ef4444;">8</div>
+                    <div class="metric-sub warning-text">5 Extintores | 3 Hidr.</div>
                     <i class="fa-solid fa-triangle-exclamation icon-corner"></i>
                 </div>
             </div>
+
             <div class="content-grid">
                 <div class="card">
                     <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Diário de Ocorrências</h3>
                     <div class="timeline-item">
                         <div class="timeline-icon"><i class="fa-solid fa-check"></i></div>
                         <div>
-                            <h5 contenteditable="true" onblur="GlobalManager.save(this)" id="occ_1_t">Vistoria Pediátrica</h5>
-                            <p contenteditable="true" onblur="GlobalManager.save(this)" id="occ_1_d">Rotas desobstruídas.</p>
+                            <h5 contenteditable="true" onblur="GlobalManager.save(this)" id="occ_1_t">Vistoria Ala Pediátrica</h5>
+                            <p contenteditable="true" onblur="GlobalManager.save(this)" id="occ_1_d">Rotas de fuga desobstruídas.</p>
                         </div>
                     </div>
                 </div>
@@ -141,15 +146,18 @@
                     <button onclick="IndicadoresApp.filterByYear('2026')" id="btn-year-2026" class="slicer-btn">2026</button>
                 </div>
             </div>
+            
             <div class="tw-flex tw-gap-6 tw-border-b tw-border-slate-200 tw-mb-6">
                 <button onclick="IndicadoresApp.switchTab('overview')" id="tab-btn-overview" class="tab-btn-dash active"><i class="ph ph-chart-line-up"></i> Visão Executiva</button>
                 <button onclick="IndicadoresApp.switchTab('conformidade')" id="tab-btn-conformidade" class="tab-btn-dash"><i class="ph ph-shield-check"></i> Conformidade</button>
                 <button onclick="IndicadoresApp.switchTab('evacuacao')" id="tab-btn-evacuacao" class="tab-btn-dash"><i class="ph ph-users-three"></i> Evacuação</button>
             </div>
+
             <div class="tw-bg-white tw-p-3 tw-rounded-xl tw-border tw-border-slate-200 tw-shadow-sm tw-mb-6 tw-flex tw-items-center tw-gap-3 tw-overflow-x-auto">
                 <span class="tw-text-xs tw-font-bold tw-text-slate-400 tw-uppercase">Mês:</span>
                 <div id="month-slicer" class="tw-flex tw-gap-1"></div>
             </div>
+
             <div id="indicadores-content" class="tw-min-h-[500px]"></div>
         </div>
 
@@ -162,10 +170,11 @@
                     <button class="slicer-btn" onclick="TreinamentosApp.filter('Técnico', this)">Operacional</button>
                 </div>
             </div>
+            
             <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6 tw-mb-6">
                 <div class="tw-bg-slate-800 tw-text-white tw-p-4 tw-rounded-xl">
                     <div class="tw-flex tw-justify-between tw-mb-2">
-                        <span class="tw-text-xs tw-font-bold tw-uppercase">Progresso</span>
+                        <span class="tw-text-xs tw-font-bold tw-uppercase">Progresso 2026</span>
                         <span id="prog-percent" class="tw-font-bold">0%</span>
                     </div>
                     <div class="progress-bar-container" style="background:rgba(255,255,255,0.1);">
@@ -173,6 +182,7 @@
                     </div>
                 </div>
             </div>
+
             <div id="training-grid-container" class="tw-flex tw-flex-col tw-gap-4"></div>
         </div>
 
@@ -181,14 +191,13 @@
     <script src="assets/js/database.js"></script>
     <script src="assets/js/global.js"></script>
     <script src="assets/js/escala.js"></script>
-    <script src="assets/js/treinamentos.js"></script>
     <script src="assets/js/indicadores.js"></script>
+    <script src="assets/js/treinamentos.js"></script>
     
     <script>
-        // Inicialização Global
         window.onload = () => {
             GlobalManager.init();
-            EscalaApp.init(); // Carrega dados para a escala e o dashboard inicial
+            EscalaApp.init(); // Carrega Escala e Dashboard Widget
         };
     </script>
 </body>
