@@ -1,78 +1,68 @@
-const IndicadoresApp = {
-    state: { year: '2025', month: 'all', tab: 'overview' },
+const Indicadores = {
+    year: '2025',
+    currentTab: 'overview',
 
     init() {
-        this.renderMonthSlicer();
-        this.renderContent();
+        this.render();
     },
 
-    filterByYear(year) {
-        this.state.year = year;
-        document.querySelectorAll('[id^="btn-year-"]').forEach(b => b.classList.remove('slicer-active'));
-        document.getElementById('btn-year-' + year).classList.add('slicer-active');
-        this.renderContent();
+    setYear(y) {
+        this.year = y;
+        this.render();
     },
 
-    switchTab(tab) {
-        this.state.tab = tab;
-        document.querySelectorAll('.tab-btn-dash').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-btn-' + tab).classList.add('active');
-        this.renderContent();
+    setTab(t, btn) {
+        this.currentTab = t;
+        // Update tabs visually
+        document.querySelectorAll('.dash-tab').forEach(b => b.classList.remove('active', 'bg-slate-100', 'text-blue-600'));
+        btn.classList.add('active', 'bg-slate-100', 'text-blue-600');
+        this.render();
     },
 
-    renderMonthSlicer() {
-        const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        let html = `<button class="slicer-btn slicer-active" onclick="IndicadoresApp.filterMonth('all', this)">Todos</button>`;
-        months.forEach(m => {
-            html += `<button class="slicer-btn" onclick="IndicadoresApp.filterMonth('${m}', this)">${m}</button>`;
-        });
-        document.getElementById('month-slicer').innerHTML = html;
-    },
-
-    filterMonth(month, btn) {
-        this.state.month = month;
-        document.querySelectorAll('#month-slicer .slicer-btn').forEach(b => b.classList.remove('slicer-active'));
-        btn.classList.add('slicer-active');
-        this.renderContent();
-    },
-
-    renderContent() {
-        const container = document.getElementById('indicadores-content');
-        const data = DB.indicadores[this.state.year];
+    render() {
+        const container = document.getElementById('indicadores-container');
+        const data = DB.indicadores[this.year];
         
-        if(this.state.tab === 'overview') {
-            const lastIdx = data.conformidade.values.length - 1;
+        if(this.currentTab === 'overview') {
             container.innerHTML = `
-                <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-lg:tw-grid-cols-4 tw-gap-4 tw-mb-6">
-                    ${this.kpiHtml('Conformidade', data.conformidade.values[lastIdx] + '%', 'ph-shield-check', 'tw-text-blue-600')}
-                    ${this.kpiHtml('Obstruções', '8 Itens', 'ph-warning-circle', 'tw-text-orange-500')}
-                    ${this.kpiHtml('Evacuação', '03:05', 'ph-timer', 'tw-text-emerald-500')}
-                    ${this.kpiHtml('Brigada', '55/109', 'ph-users-three', 'tw-text-purple-500')}
-                </div>
-                <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-2 tw-gap-6">
-                    <div class="tw-bg-white tw-p-6 tw-rounded-xl tw-border tw-border-slate-200 tw-shadow-sm">
-                        <h3 class="tw-font-bold tw-text-slate-700 tw-mb-4">Evolução Mensal</h3>
-                        <div class="tw-h-[300px]"><canvas id="chartConformidade"></canvas></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex justify-between mb-4">
+                            <h3 class="font-bold text-slate-700">Evolução Mensal (%)</h3>
+                            <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500 font-bold">${this.year}</span>
+                        </div>
+                        <div class="h-[300px]"><canvas id="chartMain"></canvas></div>
                     </div>
-                    <div class="tw-bg-white tw-p-6 tw-rounded-xl tw-border tw-border-slate-200 tw-shadow-sm">
-                        <h3 class="tw-font-bold tw-text-slate-700 tw-mb-4">Insights</h3>
-                        <div class="tw-space-y-3">
-                            ${data.insights.all.map(i => `<div class="tw-bg-slate-50 tw-p-3 tw-rounded-lg tw-text-sm tw-text-slate-600 tw-flex tw-gap-2"><i class="ph-fill ph-lightbulb tw-text-yellow-500"></i> ${i}</div>`).join('')}
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="ph-fill ph-lightbulb text-yellow-500"></i> Destaques</h3>
+                        <div class="space-y-3 flex-1">
+                            ${data.insights.all.map(i => `
+                                <div class="p-3 bg-slate-50 rounded-lg text-sm text-slate-600 border border-slate-100 flex gap-3">
+                                    <div class="w-1 bg-blue-500 rounded-full"></div>
+                                    ${i}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between text-xs font-bold text-slate-400 uppercase">
+                            <span>Status Anual</span>
+                            <span class="text-emerald-500">Positivo</span>
                         </div>
                     </div>
-                </div>`;
-            this.renderChart('chartConformidade', 'line', data.conformidade.labels, data.conformidade.values, '#2563eb');
-        } else if (this.state.tab === 'conformidade') {
+                </div>
+            `;
+            setTimeout(() => this.drawChart('chartMain', 'line', data.conformidade.labels, data.conformidade.values, '#2563eb'), 50);
+        }
+        else if (this.currentTab === 'conformidade') {
             container.innerHTML = `
-                <div class="tw-grid tw-grid-cols-1 tw-gap-6">
-                    <div class="tw-bg-white tw-p-6 tw-rounded-xl tw-border tw-border-slate-200">
-                        <h3 class="tw-font-bold tw-mb-4">Obstruções por Equipamento</h3>
-                        <div class="tw-h-[350px]"><canvas id="chartObstrucoes"></canvas></div>
-                    </div>
-                </div>`;
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fade-in">
+                    <h3 class="font-bold text-slate-700 mb-4">Obstruções: Extintores vs Hidrantes</h3>
+                    <div class="h-[350px]"><canvas id="chartObs"></canvas></div>
+                </div>
+            `;
             setTimeout(() => {
-                const ctx = document.getElementById('chartObstrucoes').getContext('2d');
-                new Chart(ctx, {
+                const ctx = document.getElementById('chartObs').getContext('2d');
+                if(window.myChart2) window.myChart2.destroy();
+                window.myChart2 = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: data.conformidade.labels,
@@ -84,52 +74,50 @@ const IndicadoresApp = {
                     options: { responsive: true, maintainAspectRatio: false }
                 });
             }, 50);
-        } else {
+        }
+        else {
             container.innerHTML = `
-                <div class="tw-bg-white tw-p-6 tw-rounded-xl tw-border tw-border-slate-200">
-                    <div class="tw-flex tw-justify-between tw-mb-4">
-                        <h3 class="tw-font-bold">Histórico de Tempos (Segundos)</h3>
-                        <span class="badge-success">Meta: 180s</span>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fade-in">
+                    <div class="flex justify-between mb-4">
+                        <h3 class="font-bold text-slate-700">Tempo de Resposta (Segundos)</h3>
+                        <span class="badge badge-success">Meta: 180s</span>
                     </div>
-                    <div class="tw-h-[350px]"><canvas id="chartEvac"></canvas></div>
-                </div>`;
-            this.renderChart('chartEvac', 'line', data.evacuacao.labels, data.evacuacao.tempos, '#10b981');
+                    <div class="h-[350px]"><canvas id="chartEvac"></canvas></div>
+                </div>
+            `;
+            setTimeout(() => this.drawChart('chartEvac', 'line', data.evacuacao.labels, data.evacuacao.tempos, '#10b981'), 50);
         }
     },
 
-    kpiHtml(label, value, icon, color) {
-        return `
-            <div class="tw-bg-white tw-p-5 tw-rounded-xl tw-border tw-border-slate-200 tw-shadow-sm tw-flex tw-justify-between tw-items-start">
-                <div>
-                    <p class="tw-text-xs tw-font-bold tw-text-slate-400 tw-uppercase">${label}</p>
-                    <h4 class="tw-text-2xl tw-font-bold tw-text-slate-800 tw-mt-1">${value}</h4>
-                </div>
-                <i class="ph-fill ${icon} tw-text-3xl ${color}"></i>
-            </div>`;
-    },
+    drawChart(id, type, labels, dataPoints, color) {
+        const ctx = document.getElementById(id).getContext('2d');
+        if(window.myChart1 && id === 'chartMain') window.myChart1.destroy();
+        if(window.myChart3 && id === 'chartEvac') window.myChart3.destroy();
 
-    renderChart(id, type, labels, dataPoints, color) {
-        setTimeout(() => {
-            const ctx = document.getElementById(id);
-            if(!ctx) return;
-            const existing = Chart.getChart(id);
-            if(existing) existing.destroy();
+        const chart = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Valor',
+                    data: dataPoints,
+                    borderColor: color,
+                    backgroundColor: color + '20', // Opacity
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
 
-            new Chart(ctx.getContext('2d'), {
-                type: type,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Dados',
-                        data: dataPoints,
-                        borderColor: color,
-                        backgroundColor: color + '20',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-        }, 50);
+        if(id === 'chartMain') window.myChart1 = chart;
+        if(id === 'chartEvac') window.myChart3 = chart;
     }
 };
