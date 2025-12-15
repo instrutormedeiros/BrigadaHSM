@@ -1,105 +1,93 @@
-const TreinamentosApp = {
+const Treinamentos = {
     completed: [],
 
     init() {
-        this.completed = JSON.parse(localStorage.getItem('hsm_train_v2')) || [];
-        this.renderContent(DB.treinamentos);
-        this.updateProgress();
+        this.completed = JSON.parse(localStorage.getItem('hsm_train_progress') || '[]');
+        this.render();
+        this.updateStats();
     },
 
-    toggleCard(id) {
-        const card = document.getElementById(`card-${id}`);
-        if(card) card.classList.toggle('active');
-    },
-
-    toggleStatus(e, id) {
-        e.stopPropagation(); 
-        const index = this.completed.indexOf(id);
-        if (index > -1) this.completed.splice(index, 1);
+    toggle(id) {
+        const idx = this.completed.indexOf(id);
+        if(idx > -1) this.completed.splice(idx, 1);
         else this.completed.push(id);
         
-        localStorage.setItem('hsm_train_v2', JSON.stringify(this.completed));
-        this.renderContent(DB.treinamentos);
-        this.updateProgress();
+        localStorage.setItem('hsm_train_progress', JSON.stringify(this.completed));
+        this.render();
+        this.updateStats();
     },
 
     filter(cat, btn) {
-        document.querySelectorAll('.training-filters .slicer-btn').forEach(b => b.classList.remove('slicer-active'));
-        btn.classList.add('slicer-active');
-        const container = document.getElementById('training-grid-container');
-        container.style.opacity = '0';
-        setTimeout(() => {
-            if (cat === 'todos') this.renderContent(DB.treinamentos);
-            else this.renderContent(DB.treinamentos.filter(m => m.category.includes(cat)));
-            container.style.opacity = '1';
-        }, 200);
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active', 'bg-slate-800', 'text-white'));
+        btn.classList.add('active', 'bg-slate-800', 'text-white');
+        this.render(cat);
     },
 
-    updateProgress() {
-        const count = this.completed.length;
+    updateStats() {
         const total = DB.treinamentos.length;
-        const pct = Math.round((count/total)*100);
-        
-        // Atualiza na view de treinamentos
-        const pctEl = document.getElementById('prog-percent');
-        const fillEl = document.getElementById('fill');
-        if(pctEl && fillEl) {
-            pctEl.innerText = `${pct}%`;
-            fillEl.style.width = `${pct}%`;
-        }
+        const done = this.completed.length;
+        const pct = Math.round((done / total) * 100);
 
-        // Atualiza no Dashboard Home
-        const dashVal = document.getElementById('dash-train-val');
-        if(dashVal) dashVal.innerText = `${pct}%`;
+        // Update in Treinamentos View
+        const bar = document.getElementById('train-total-bar');
+        const txt = document.getElementById('train-total-pct');
+        if(bar) bar.style.width = `${pct}%`;
+        if(txt) txt.innerText = `${pct}%`;
+
+        // Update in Dashboard Home
+        const dashBar = document.getElementById('dash-train-bar');
+        const dashTxt = document.getElementById('dash-train-pct');
+        if(dashBar) dashBar.style.width = `${pct}%`;
+        if(dashTxt) dashTxt.innerText = `${pct}%`;
     },
 
-    renderContent(data) {
-        const container = document.getElementById('training-grid-container');
-        container.innerHTML = '';
+    render(filterCat = 'todos') {
+        const container = document.getElementById('training-grid');
+        let list = DB.treinamentos;
+        if(filterCat !== 'todos') list = list.filter(m => m.category.includes(filterCat));
 
-        data.forEach(m => {
+        container.innerHTML = list.map(m => {
             const isDone = this.completed.includes(m.id);
-            let badgeClass = m.type === 'lid' ? 'badge-info' : (m.type === 'tec' ? 'badge-warning' : 'badge-success');
-
-            const html = `
-                <div class="module-card ${isDone ? 'done-border' : ''}" id="card-${m.id}">
-                    <div class="card-header" onclick="TreinamentosApp.toggleCard(${m.id})">
-                        <div style="display:flex; align-items:center; gap:15px;">
-                            <div class="status-dot-t ${isDone ? 'done' : ''}"><i class="fas fa-check"></i></div>
+            const badgeColor = m.type === 'lid' ? 'bg-blue-100 text-blue-700' : (m.type === 'tec' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700');
+            
+            return `
+                <div class="module-card ${isDone ? 'completed' : ''} group">
+                    <div class="card-header" onclick="this.parentElement.querySelector('.card-body').classList.toggle('hidden')">
+                        <div class="flex items-center gap-4">
+                            <div class="w-8 h-8 rounded-full ${isDone ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-300'} flex items-center justify-center transition-colors">
+                                <i class="ph-bold ph-check"></i>
+                            </div>
                             <div>
-                                <h3 style="font-weight:600; font-size:1.05rem;" contenteditable="true" id="mod_${m.id}_t" onblur="GlobalManager.save(this)">${m.title}</h3>
-                                <span style="font-size:0.85rem; color:#64748b;" contenteditable="true" id="mod_${m.id}_s" onblur="GlobalManager.save(this)">${m.subtitle}</span>
+                                <h3 class="font-bold text-slate-800">${m.title}</h3>
+                                <p class="text-xs text-slate-500">${m.subtitle}</p>
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:15px;">
-                            <span class="badge-dash ${badgeClass}">${m.category}</span>
-                            <i class="fas fa-chevron-down expand-icon" style="color:#94a3b8;"></i>
+                        <div class="flex items-center gap-3">
+                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${badgeColor}">${m.category}</span>
+                            <i class="ph-bold ph-caret-down text-slate-400 group-hover:text-slate-600"></i>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="content-wrapper">
+                    <div class="card-body hidden bg-slate-50 p-6 border-t border-slate-100">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <h4 style="font-size:0.8rem; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-bottom:10px;"><i class="fas fa-book-open"></i> Teoria</h4>
-                                <ul style="list-style:none; padding-left:10px; border-left:2px solid #e2e8f0;">
-                                    ${m.theory.map((t, i) => `<li style="margin-bottom:8px; font-size:0.9rem; color:#475569;"><span contenteditable="true" id="mod_${m.id}_th_${i}" onblur="GlobalManager.save(this)">${t}</span></li>`).join('')}
+                                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Conceitos Chave</h4>
+                                <ul class="space-y-2">
+                                    ${m.theory.map(t => `<li class="text-sm text-slate-600 flex gap-2"><i class="ph-fill ph-dot text-slate-300"></i> ${t}</li>`).join('')}
                                 </ul>
                             </div>
-                            <div>
-                                <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0; margin-top:10px;">
-                                    <strong style="color:#1e293b; display:block; margin-bottom:5px;">Dinâmica</strong>
-                                    <p style="font-size:0.9rem; color:#64748b; font-style:italic;" contenteditable="true" id="mod_${m.id}_d" onblur="GlobalManager.save(this)">${m.drill}</p>
+                            <div class="flex flex-col justify-between">
+                                <div class="bg-white p-4 rounded-lg border border-slate-200">
+                                    <div class="text-xs font-bold text-slate-800 uppercase mb-1">Prática</div>
+                                    <p class="text-sm text-slate-600 italic">"${m.drill}"</p>
                                 </div>
-                                <button class="action-btn ${isDone ? 'completed' : ''}" onclick="TreinamentosApp.toggleStatus(event, ${m.id})">
-                                    <i class="fas ${isDone ? 'fa-check-circle' : 'fa-circle'}"></i>
-                                    ${isDone ? 'Concluído' : 'Marcar Conclusão'}
+                                <button onclick="Treinamentos.toggle(${m.id})" class="mt-4 w-full py-2 rounded-lg font-bold text-sm transition-colors ${isDone ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-800 text-white hover:bg-slate-700'}">
+                                    ${isDone ? 'Concluído' : 'Marcar como Concluído'}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
-            container.innerHTML += html;
-        });
-        GlobalManager.init(); // Re-aplica edições salvas
+        }).join('');
     }
 };
