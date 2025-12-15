@@ -5,185 +5,253 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S.G.E - Brigada HSM</title>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { prefix: 'tw-', corePlugins: { preflight: false } }
-    </script>
-
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans">
 
-    <aside class="sidebar">
-        <div class="brand">
-            <h2 id="sb_brand" contenteditable="true" onblur="GlobalManager.save(this)">BRIGADA HSM</h2>
-            <span id="sb_sub" contenteditable="true" onblur="GlobalManager.save(this)">Hospital Santa Marta</span>
-        </div>
-        <div class="user-profile">
-            <img src="https://ui-avatars.com/api/?name=Medeiros&background=dc2626&color=fff" alt="User" class="avatar">
-            <div class="user-info">
-                <h4 id="sb_user_name" contenteditable="true" onblur="GlobalManager.save(this)">Medeiros</h4>
-                <p id="sb_user_role" contenteditable="true" onblur="GlobalManager.save(this)">Chefe de Brigada</p>
+    <aside class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white flex flex-col z-50 shadow-xl transition-all">
+        <div class="p-6 border-b border-slate-800">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-blue-600 p-2 rounded-lg"><i class="ph-fill ph-fire text-xl"></i></div>
+                <div>
+                    <h2 class="font-bold text-lg leading-tight" contenteditable="true" id="brand_title" onblur="Global.save(this)">BRIGADA HSM</h2>
+                    <span class="text-xs text-slate-400" contenteditable="true" id="brand_sub" onblur="Global.save(this)">Hospital Santa Marta</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-800 p-3 rounded-lg">
+                <img src="https://ui-avatars.com/api/?name=Medeiros&background=2563eb&color=fff" class="w-10 h-10 rounded-full border-2 border-blue-500">
+                <div>
+                    <div class="text-sm font-bold" contenteditable="true" id="user_name" onblur="Global.save(this)">Medeiros</div>
+                    <div class="text-xs text-blue-400 font-medium" contenteditable="true" id="user_role" onblur="Global.save(this)">Chefe de Brigada</div>
+                </div>
             </div>
         </div>
-        <ul class="nav-menu">
-            <li class="nav-item active" onclick="GlobalManager.switchView('dashboard', this)">
-                <i class="fa-solid fa-table-columns"></i> Dashboard
-            </li>
-            <li class="nav-item" onclick="GlobalManager.switchView('escala', this)">
-                <i class="fa-solid fa-calendar-days"></i> Escala
-            </li>
-            <li class="nav-item" onclick="GlobalManager.switchView('indicadores', this)">
-                <i class="fas fa-chart-pie"></i> Indicadores
-            </li>
-            <li class="nav-item">
-                <i class="fa-solid fa-plane-departure"></i> Férias
-            </li>
-            <li class="nav-item" onclick="GlobalManager.switchView('treinamentos', this)">
-                <i class="fas fa-graduation-cap"></i> Treinamentos
-            </li>
-        </ul>
-        <div class="logout"><i class="fa-solid fa-power-off"></i> Sair</div>
+
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="Global.router('dashboard')" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i class="ph ph-squares-four text-lg"></i> Visão Geral
+            </button>
+            <button onclick="Global.router('escala')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i class="ph ph-calendar-check text-lg"></i> Escala
+            </button>
+            <button onclick="Global.router('indicadores')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i class="ph ph-chart-line-up text-lg"></i> Indicadores
+            </button>
+            <button onclick="Global.router('treinamentos')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i class="ph ph-graduation-cap text-lg"></i> Treinamentos
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800">
+            <button class="w-full flex items-center justify-center gap-2 text-slate-400 hover:text-red-400 text-sm font-medium transition-colors">
+                <i class="ph ph-sign-out"></i> Sair do Sistema
+            </button>
+        </div>
     </aside>
 
-    <main class="main-content">
+    <main class="ml-64 p-8 min-h-screen">
         
-        <div id="view-dashboard" class="view-section active">
-            <div class="section-dark-header">
-                <div class="header-title"><h1><i class="fa-solid fa-grip"></i> Visão Geral</h1></div>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <div class="status-pill">HSM Operante</div>
-                    <div id="dashboardDate" style="font-size: 12px; text-align: right;"></div>
+        <header class="flex justify-between items-end mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900" id="page-title">Painel de Controle</h1>
+                <p class="text-slate-500 text-sm mt-1" id="page-subtitle">Bem-vindo ao SGE Brigada.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wide">HSM Operante</span>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs font-bold text-slate-400 uppercase">Hoje</div>
+                    <div class="text-sm font-bold text-slate-700" id="current-date">--/--/----</div>
                 </div>
             </div>
+        </header>
 
-            <div class="top-grid">
-                <div class="welcome-card">
-                    <h2 contenteditable="true" id="dash_welcome_title" onblur="GlobalManager.save(this)">Olá, Chefe Medeiros</h2>
-                    <p contenteditable="true" id="dash_welcome_msg" onblur="GlobalManager.save(this)">Resumo operacional consolidado.</p>
-                </div>
-                <div class="card relative">
-                    <div class="metric-label">Conformidade (Dez)</div>
-                    <div class="metric-val" style="color: #2563eb;">96.3%</div>
-                    <div class="metric-sub" style="color: #10b981;">Meta Atingida</div>
-                    <i class="fas fa-shield-alt icon-corner"></i>
-                </div>
-                <div class="card relative">
-                    <div class="metric-label">Obstruções Ativas</div>
-                    <div class="metric-val" style="color: #ef4444;">8</div>
-                    <div class="metric-sub warning-text">5 Extintores | 3 Hidr.</div>
-                    <i class="fa-solid fa-triangle-exclamation icon-corner"></i>
-                </div>
-            </div>
-
-            <div class="content-grid">
-                <div class="card">
-                    <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Diário de Ocorrências</h3>
-                    <div class="timeline-item">
-                        <div class="timeline-icon"><i class="fa-solid fa-check"></i></div>
+        <div id="view-dashboard" class="view-section space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="kpi-card bg-blue-600 text-white border-none shadow-blue-200 shadow-xl">
+                    <div class="flex justify-between items-start">
                         <div>
-                            <h5 contenteditable="true" onblur="GlobalManager.save(this)" id="occ_1_t">Vistoria Ala Pediátrica</h5>
-                            <p contenteditable="true" onblur="GlobalManager.save(this)" id="occ_1_d">Rotas de fuga desobstruídas.</p>
+                            <p class="text-blue-100 text-xs font-bold uppercase tracking-wider">Plantão Hoje</p>
+                            <h3 class="text-2xl font-bold mt-1" id="dash-plantao-count">--</h3>
+                        </div>
+                        <div class="bg-blue-500 p-2 rounded-lg"><i class="ph-fill ph-users text-xl text-white"></i></div>
+                    </div>
+                    <div class="mt-4 text-xs text-blue-100 flex items-center gap-1">
+                        <i class="ph-fill ph-clock"></i> <span id="dash-plantao-team">Equipe carregando...</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="kpi-label">Conformidade (Nov)</p>
+                            <h3 class="kpi-value text-emerald-600">97.1%</h3>
+                        </div>
+                        <div class="bg-emerald-50 p-2 rounded-lg"><i class="ph-fill ph-shield-check text-xl text-emerald-600"></i></div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <span class="badge badge-success">Meta Atingida</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="kpi-label">Obstruções Ativas</p>
+                            <h3 class="kpi-value text-orange-500">12</h3>
+                        </div>
+                        <div class="bg-orange-50 p-2 rounded-lg"><i class="ph-fill ph-warning-circle text-xl text-orange-500"></i></div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4">8 Extintores • 4 Hidrantes</p>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="kpi-label">Capacitação 2026</p>
+                            <h3 class="kpi-value text-purple-600" id="dash-train-pct">0%</h3>
+                        </div>
+                        <div class="bg-purple-50 p-2 rounded-lg"><i class="ph-fill ph-graduation-cap text-xl text-purple-600"></i></div>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full mt-4 overflow-hidden">
+                        <div class="bg-purple-500 h-full transition-all duration-1000" id="dash-train-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-notebook text-blue-500"></i> Diário de Ocorrências</h3>
+                        <button class="text-xs font-bold text-blue-600 hover:underline">Ver Histórico</button>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                <div class="w-0.5 h-full bg-slate-100 mt-2"></div>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-400">09:15 • Hoje</span>
+                                <h4 class="font-bold text-slate-800" contenteditable="true" id="occ_1_t" onblur="Global.save(this)">Vistoria Ala Pediátrica</h4>
+                                <p class="text-sm text-slate-600 mt-1" contenteditable="true" id="occ_1_d" onblur="Global.save(this)">Rotas de fuga verificadas e desobstruídas.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-400">14:30 • Ontem</span>
+                                <h4 class="font-bold text-slate-800" contenteditable="true" id="occ_2_t" onblur="Global.save(this)">Manutenção Preventiva</h4>
+                                <p class="text-sm text-slate-600 mt-1" contenteditable="true" id="occ_2_d" onblur="Global.save(this)">Recarga dos extintores do Bloco C iniciada.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card team-card">
-                    <h3 class="card-title text-white">Plantão Hoje</h3>
-                    <span id="shiftLabel" class="text-sm opacity-70"></span>
-                    <div id="teamListContainer" class="mt-4 flex flex-col gap-2"></div>
+
+                <div class="bg-slate-900 rounded-xl shadow-lg p-6 text-white flex flex-col">
+                    <h3 class="font-bold mb-1 flex items-center gap-2"><i class="ph-fill ph-users-three"></i> Em Turno Agora</h3>
+                    <p class="text-xs text-slate-400 mb-6" id="dash-shift-detail">Carregando...</p>
+                    
+                    <div id="dash-team-list" class="space-y-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+                        </div>
+                    
+                    <button onclick="Global.router('escala')" class="mt-auto pt-6 w-full text-center text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors">
+                        Ver Escala Completa →
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div id="view-escala" class="view-section">
-            <div class="escala-container">
-                <div class="section-dark-header">
-                    <div>
-                        <h1 contenteditable="true" onblur="GlobalManager.save(this)" id="esc_title">GERENCIADOR DE ESCALA 2026 🔥</h1>
-                    </div>
-                    <div class="month-control">
-                        <button class="nav-arrow" onclick="EscalaApp.changeMonth(-1)">❮</button>
-                        <div id="displayMonth">JANEIRO 2026</div>
-                        <button class="nav-arrow" onclick="EscalaApp.changeMonth(1)">❯</button>
-                    </div>
-                    <div class="escala-actions">
-                        <button class="btn-reset" onclick="EscalaApp.resetMonth()">↺ Reset</button>
-                        <button class="btn-print" onclick="window.print()">🖨 Imprimir</button>
-                    </div>
+        <div id="view-escala" class="view-section hidden">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <button onclick="Escala.changeMonth(-1)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"><i class="ph-bold ph-caret-left"></i></button>
+                    <h2 class="text-lg font-bold text-slate-800 uppercase tracking-wide w-40 text-center" id="escala-month-display">JANEIRO 2026</h2>
+                    <button onclick="Escala.changeMonth(1)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
-                <div class="table-paper">
-                    <div class="table-scroll">
-                        <table id="mainTable"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
-                    </div>
+                <div class="flex gap-2">
+                    <button onclick="Escala.reset()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">Resetar</button>
+                    <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors flex items-center gap-2"><i class="ph-bold ph-printer"></i> Imprimir</button>
                 </div>
-                <div class="footer-grid">
-                    <div class="check-card">
-                        <div class="card-title-purple">Checklist Individual</div>
-                        <div id="listCheck1" style="flex:1;"></div>
-                    </div>
-                    <div class="check-card">
-                        <div class="card-title-purple">Escala de Extintores</div>
-                        <div id="listCheck2" style="flex:1;"></div>
-                    </div>
-                    <div class="check-card">
-                        <div class="card-title-purple">Obstrução</div>
-                        <div id="listCheck3" style="flex:1;"></div>
-                    </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left" id="escala-table">
+                        <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-xs" id="escala-head"></thead>
+                        <tbody class="divide-y divide-slate-100" id="escala-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-bold text-purple-600 uppercase mb-3 border-b border-purple-100 pb-2">Checklist Individual</h4>
+                    <div id="footer-list-1" class="space-y-2 text-xs"></div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-bold text-blue-600 uppercase mb-3 border-b border-blue-100 pb-2">Escala de Extintores</h4>
+                    <div id="footer-list-2" class="space-y-2 text-xs"></div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-bold text-orange-600 uppercase mb-3 border-b border-orange-100 pb-2">Obstruções</h4>
+                    <div id="footer-list-3" class="space-y-2 text-xs"></div>
                 </div>
             </div>
         </div>
 
-        <div id="view-indicadores" class="view-section">
-            <div class="section-dark-header">
-                <div><h1><i class="ph-fill ph-chart-bar"></i> KPI & Indicadores</h1></div>
-                <div class="tw-flex tw-gap-2">
-                    <button onclick="IndicadoresApp.filterByYear('2025')" id="btn-year-2025" class="slicer-btn slicer-active">2025</button>
-                    <button onclick="IndicadoresApp.filterByYear('2026')" id="btn-year-2026" class="slicer-btn">2026</button>
+        <div id="view-indicadores" class="view-section hidden space-y-6">
+            <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex gap-1 bg-slate-100 p-1 rounded-lg">
+                    <button onclick="Indicadores.setTab('overview', this)" class="dash-tab active">Visão Executiva</button>
+                    <button onclick="Indicadores.setTab('conformidade', this)" class="dash-tab">Conformidade</button>
+                    <button onclick="Indicadores.setTab('evacuacao', this)" class="dash-tab">Evacuação</button>
+                </div>
+                <div class="flex items-center gap-2 px-4">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Ano Base:</span>
+                    <select id="ind-year-select" onchange="Indicadores.setYear(this.value)" class="text-sm font-bold bg-transparent text-slate-700 border-none focus:ring-0 cursor-pointer">
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                    </select>
                 </div>
             </div>
-            
-            <div class="tw-flex tw-gap-6 tw-border-b tw-border-slate-200 tw-mb-6">
-                <button onclick="IndicadoresApp.switchTab('overview')" id="tab-btn-overview" class="tab-btn-dash active"><i class="ph ph-chart-line-up"></i> Visão Executiva</button>
-                <button onclick="IndicadoresApp.switchTab('conformidade')" id="tab-btn-conformidade" class="tab-btn-dash"><i class="ph ph-shield-check"></i> Conformidade</button>
-                <button onclick="IndicadoresApp.switchTab('evacuacao')" id="tab-btn-evacuacao" class="tab-btn-dash"><i class="ph ph-users-three"></i> Evacuação</button>
-            </div>
 
-            <div class="tw-bg-white tw-p-3 tw-rounded-xl tw-border tw-border-slate-200 tw-shadow-sm tw-mb-6 tw-flex tw-items-center tw-gap-3 tw-overflow-x-auto">
-                <span class="tw-text-xs tw-font-bold tw-text-slate-400 tw-uppercase">Mês:</span>
-                <div id="month-slicer" class="tw-flex tw-gap-1"></div>
-            </div>
-
-            <div id="indicadores-content" class="tw-min-h-[500px]"></div>
+            <div id="indicadores-container">
+                </div>
         </div>
 
-        <div id="view-treinamentos" class="view-section">
-            <div class="section-dark-header">
-                <div><h1>PLANO DE ENSINO 2026</h1></div>
-                <div class="training-filters">
-                    <button class="slicer-btn slicer-active" onclick="TreinamentosApp.filter('todos', this)">Todos</button>
-                    <button class="slicer-btn" onclick="TreinamentosApp.filter('Liderança', this)">Chefia</button>
-                    <button class="slicer-btn" onclick="TreinamentosApp.filter('Técnico', this)">Operacional</button>
+        <div id="view-treinamentos" class="view-section hidden space-y-6">
+            <div class="bg-slate-900 rounded-xl p-6 text-white shadow-lg flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-lg">Progresso da Brigada</h3>
+                    <p class="text-slate-400 text-sm">Ciclo de Capacitação 2026</p>
                 </div>
-            </div>
-            
-            <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6 tw-mb-6">
-                <div class="tw-bg-slate-800 tw-text-white tw-p-4 tw-rounded-xl">
-                    <div class="tw-flex tw-justify-between tw-mb-2">
-                        <span class="tw-text-xs tw-font-bold tw-uppercase">Progresso 2026</span>
-                        <span id="prog-percent" class="tw-font-bold">0%</span>
-                    </div>
-                    <div class="progress-bar-container" style="background:rgba(255,255,255,0.1);">
-                        <div class="progress-bar-fill" id="fill" style="background:#ef4444; width:0%"></div>
+                <div class="text-right w-1/3">
+                    <div class="text-3xl font-bold mb-1" id="train-total-pct">0%</div>
+                    <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                        <div class="bg-emerald-500 h-full transition-all duration-1000" id="train-total-bar" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
 
-            <div id="training-grid-container" class="tw-flex tw-flex-col tw-gap-4"></div>
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <button onclick="Treinamentos.filter('todos', this)" class="filter-chip active">Todos</button>
+                <button onclick="Treinamentos.filter('Liderança', this)" class="filter-chip">Liderança</button>
+                <button onclick="Treinamentos.filter('Técnico', this)" class="filter-chip">Técnico</button>
+                <button onclick="Treinamentos.filter('Comportamental', this)" class="filter-chip">Comportamental</button>
+            </div>
+
+            <div id="training-grid" class="grid grid-cols-1 gap-4"></div>
         </div>
 
     </main>
@@ -193,11 +261,16 @@
     <script src="assets/js/escala.js"></script>
     <script src="assets/js/indicadores.js"></script>
     <script src="assets/js/treinamentos.js"></script>
-    
+
     <script>
+        // Init Global
         window.onload = () => {
-            GlobalManager.init();
-            EscalaApp.init(); // Carrega Escala e Dashboard Widget
+            Global.init();
+            Escala.init(); // Important: Loads scale data which feeds the dashboard widget
+            
+            // Set date
+            const d = new Date();
+            document.getElementById('current-date').innerText = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
         };
     </script>
 </body>
