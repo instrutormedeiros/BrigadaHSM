@@ -2,7 +2,7 @@ const TreinamentosApp = {
     completed: [],
 
     init() {
-        this.completed = JSON.parse(localStorage.getItem('hsm_2026_data')) || [];
+        this.completed = JSON.parse(localStorage.getItem('hsm_train_v2')) || [];
         this.renderContent(DB.treinamentos);
         this.updateProgress();
     },
@@ -18,8 +18,8 @@ const TreinamentosApp = {
         if (index > -1) this.completed.splice(index, 1);
         else this.completed.push(id);
         
-        localStorage.setItem('hsm_2026_data', JSON.stringify(this.completed));
-        this.renderContent(DB.treinamentos); 
+        localStorage.setItem('hsm_train_v2', JSON.stringify(this.completed));
+        this.renderContent(DB.treinamentos);
         this.updateProgress();
     },
 
@@ -39,8 +39,18 @@ const TreinamentosApp = {
         const count = this.completed.length;
         const total = DB.treinamentos.length;
         const pct = Math.round((count/total)*100);
-        document.getElementById('prog-percent').innerText = `${pct}%`;
-        document.getElementById('fill').style.width = `${pct}%`;
+        
+        // Atualiza na view de treinamentos
+        const pctEl = document.getElementById('prog-percent');
+        const fillEl = document.getElementById('fill');
+        if(pctEl && fillEl) {
+            pctEl.innerText = `${pct}%`;
+            fillEl.style.width = `${pct}%`;
+        }
+
+        // Atualiza no Dashboard Home
+        const dashVal = document.getElementById('dash-train-val');
+        if(dashVal) dashVal.innerText = `${pct}%`;
     },
 
     renderContent(data) {
@@ -90,6 +100,6 @@ const TreinamentosApp = {
             `;
             container.innerHTML += html;
         });
-        GlobalManager.init();
+        GlobalManager.init(); // Re-aplica edições salvas
     }
 };
