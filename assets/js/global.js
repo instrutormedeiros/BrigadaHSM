@@ -26,7 +26,7 @@ const GlobalManager = {
             element.classList.add('active');
         }
 
-        // Inicializadores on-demand
+        // Inicializadores on-demand para performance
         if(viewName === 'escala') EscalaApp.render();
         if(viewName === 'treinamentos') TreinamentosApp.init();
         if(viewName === 'indicadores') setTimeout(() => IndicadoresApp.init(), 100);
