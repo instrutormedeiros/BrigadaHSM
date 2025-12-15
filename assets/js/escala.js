@@ -1,53 +1,115 @@
-const EscalaApp = {
-    currentMonth: 0,
-    teams: {}, 
+const Escala = {
+    data: {},
+    currentMonth: 0, // 0 = Jan
 
     init() {
-        const now = new Date();
-        if(now.getFullYear() === DB.config.year) this.currentMonth = now.getMonth();
+        const d = new Date();
+        if(d.getFullYear() === DB.config.year) this.currentMonth = d.getMonth();
         
-        const saved = localStorage.getItem('hsm_teams_data_fix_v3');
-        if (saved) {
-            this.teams = JSON.parse(saved);
-        } else {
-            this.teams = JSON.parse(JSON.stringify(DB.teams));
-        }
-        // Correção Crítica: Expandir arrays para evitar repetição por referência
-        this.expandPatterns(this.teams.day);
-        this.expandPatterns(this.teams.night);
+        // Load or Default
+        const saved = localStorage.getItem('hsm_escala_v4');
+        if(saved) this.data = JSON.parse(saved);
+        else this.data = JSON.parse(JSON.stringify(DB.teamTemplate)); // Deep copy
+
+        // Fix: Expand arrays to avoid repetition bugs
+        this.expand(this.data.day);
+        this.expand(this.data.night);
+        
         this.render();
-        this.initDashboardWidget(); 
+        this.updateDashboardWidget();
     },
 
-    expandPatterns(teamList) {
-        teamList.forEach(member => {
-            // Se o array for curto (padrão inicial), expande para 32 dias únicos
-            if (member.ptr.length < 32) {
-                const newPtr = [];
-                for (let i = 0; i < 32; i++) {
-                    newPtr.push(member.ptr[i % member.ptr.length]);
-                }
-                member.ptr = newPtr;
+    expand(list) {
+        list.forEach(m => {
+            if(m.ptr.length < 32) {
+                // Preenche até 32 dias baseado no padrão inicial
+                let expanded = [];
+                for(let i=0; i<32; i++) expanded.push(m.ptr[i % m.ptr.length]);
+                m.ptr = expanded;
             }
         });
     },
 
-    saveData() {
-        localStorage.setItem('hsm_teams_data_fix_v3', JSON.stringify(this.teams));
-        this.initDashboardWidget();
+    render() {
+        const m = this.currentMonth;
+        const year = DB.config.year;
+        const daysInMonth = new Date(year, m + 1, 0).getDate();
+        const startDay = new Date(year, m, 1).getDay(); // 0=Dom
+
+        // Update Header
+        document.getElementById('escala-month-display').innerText = `${DB.config.months[m]} ${year}`;
+
+        // Build Table Head
+        let theadHtml = `<tr><th class="col-fixed w-48 text-left pl-4">NOME</th><th class="col-fixed w-16 text-center left-48">MATR.</th>`;
+        for(let i=1; i<=daysInMonth; i++) {
+            theadHtml += `<th class="text-center w-10">${i}</th>`;
+        }
+        theadHtml += `</tr><tr><th class="col-fixed bg-white"></th><th class="col-fixed bg-white left-48"></th>`; // Spacer row for days of week
+        
+        // Days of week row
+        let wd = startDay;
+        for(let i=1; i<=daysInMonth; i++) {
+            const isWeekend = (wd===0 || wd===6);
+            theadHtml += `<th class="text-center ${isWeekend ? 'bg-slate-100 text-red-500' : ''}">${DB.config.weekDays[wd]}</th>`;
+            wd = (wd+1)%7;
+        }
+        theadHtml += `</tr>`;
+        document.getElementById('escala-head').innerHTML = theadHtml;
+
+        // Build Body
+        const tbody = document.getElementById('escala-body');
+        tbody.innerHTML = '';
+
+        const buildRows = (list, type) => {
+            return list.map((p, idx) => {
+                let html = `<tr class="hover:bg-slate-50">
+                    <td class="col-fixed font-bold text-slate-700 text-xs border-b border-r px-2 py-1 bg-white" contenteditable="true" onblur="Escala.saveName('${type}',${idx},this.innerText)">${p.name}</td>
+                    <td class="col-fixed text-slate-500 font-mono text-xs border-b border-r text-center bg-white left-48">${p.id}</td>`;
+                
+                let cwd = startDay;
+                for(let i=0; i<daysInMonth; i++) {
+                    const statusVal = p.ptr[i]; // Direct index access (safe due to expand)
+                    const statusObj = DB.config.status.find(s => s.code === statusVal) || DB.config.status[2];
+                    const isWeekend = (cwd===0 || cwd===6);
+                    
+                    html += `<td class="border-b border-r text-center p-1 ${isWeekend ? 'bg-slate-50' : ''}">
+                        <div class="${statusObj.class} w-full h-full flex items-center justify-center text-[10px]" 
+                             onclick="Escala.toggle('${type}', ${idx}, ${i})">
+                             ${statusObj.label}
+                        </div>
+                    </td>`;
+                    cwd = (cwd+1)%7;
+                }
+                return html + '</tr>';
+            }).join('');
+        };
+
+        tbody.innerHTML += `<tr><td colspan="${daysInMonth+2}" class="bg-blue-900 text-white font-bold text-xs px-4 py-1 uppercase tracking-wider">Equipe Diurna (Dia)</td></tr>`;
+        tbody.innerHTML += buildRows(this.data.day, 'day');
+        
+        tbody.innerHTML += `<tr><td colspan="${daysInMonth+2}" class="bg-slate-800 text-white font-bold text-xs px-4 py-1 uppercase tracking-wider">Equipe Noturna (Noite)</td></tr>`;
+        tbody.innerHTML += buildRows(this.data.night, 'night');
+
+        this.renderChecklists();
     },
 
     toggle(type, memberIdx, dayIdx) {
-        const currentCode = this.teams[type][memberIdx].ptr[dayIdx];
-        const nextCode = (currentCode + 1) % 5;
-        this.teams[type][memberIdx].ptr[dayIdx] = nextCode;
-        this.saveData();
-        this.render(); 
+        // Cycle status: 0->1->2->3->4->0
+        let val = this.data[type][memberIdx].ptr[dayIdx];
+        val = (val + 1) % 5;
+        this.data[type][memberIdx].ptr[dayIdx] = val;
+        this.save();
+        this.render();
     },
 
-    updateName(type, memberIdx, newName) {
-        this.teams[type][memberIdx].name = newName;
-        this.saveData();
+    saveName(type, idx, val) {
+        this.data[type][idx].name = val;
+        this.save();
+    },
+
+    save() {
+        localStorage.setItem('hsm_escala_v4', JSON.stringify(this.data));
+        this.updateDashboardWidget();
     },
 
     changeMonth(dir) {
@@ -57,127 +119,58 @@ const EscalaApp = {
         this.render();
     },
 
-    resetMonth() {
-        if(confirm("Resetar escala para o padrão?")) {
-            localStorage.removeItem('hsm_teams_data_fix_v3');
+    reset() {
+        if(confirm('Restaurar escala padrão?')) {
+            localStorage.removeItem('hsm_escala_v4');
             location.reload();
         }
     },
 
-    render() {
-        const m = this.currentMonth;
-        const daysTotal = new Date(DB.config.year, m + 1, 0).getDate();
-        const startDay = new Date(DB.config.year, m, 1).getDay();
-
-        document.getElementById('displayMonth').innerText = `${DB.config.months[m]} ${DB.config.year}`;
-
-        let htmlHead = `<tr class="th-days"><th colspan="2" style="text-align:left; padding-left:15px;">BRIGADA DE INCÊNDIO</th>`;
-        for(let i=1; i<=daysTotal; i++) htmlHead += `<th>${i}</th>`;
-        htmlHead += `</tr><tr class="th-week"><th class="col-sticky">NOME</th><th class="col-id">MATR.</th>`;
+    renderChecklists() {
+        const all = [...this.data.day, ...this.data.night];
+        const tasks = ["Hidrantes","Bombas","Portas","Aterramento","Luz","Extintores","Alarmes","Rota","Hidrantes"];
         
-        let wd = startDay;
-        for(let i=1; i<=daysTotal; i++) {
-            const isWeekend = (wd===0 || wd===6);
-            htmlHead += `<th class="${isWeekend ? 'weekend-th' : ''}">${DB.config.weekDays[wd]}</th>`;
-            wd = (wd+1)%7;
-        }
-        htmlHead += `</tr>`;
-        document.getElementById('tableHead').innerHTML = htmlHead;
+        const makeList = (t) => all.map((p,i) => `
+            <div class="flex justify-between border-b border-slate-50 py-1">
+                <span class="font-bold text-slate-700">${p.name.split(' ')[0]}</span>
+                <span class="text-slate-400">${t ? (tasks[i]||'') : ''}</span>
+            </div>`).join('');
 
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = "";
-
-        const createRow = (person, type, pIdx) => {
-            let html = `<tr>
-                <td class="col-sticky" contenteditable="true" onblur="EscalaApp.updateName('${type}', ${pIdx}, this.innerText)">${person.name}</td>
-                <td class="col-id">${person.id}</td>`;
-            
-            let currentWd = startDay;
-            for(let i=0; i<daysTotal; i++) {
-                // Usa índice direto, pois o array já foi expandido
-                const code = person.ptr[i] !== undefined ? person.ptr[i] : 2;
-                const st = DB.config.status.find(s => s.code === code) || DB.config.status[2];
-                const isWeekend = (currentWd===0 || currentWd===6);
-                
-                html += `<td class="cell-status ${st.class} ${isWeekend && code !== 3 ? 'weekend-col' : ''}"
-                             onclick="EscalaApp.toggle('${type}', ${pIdx}, ${i})">
-                             ${st.label}
-                         </td>`;
-                currentWd = (currentWd+1)%7;
-            }
-            html += "</tr>";
-            return html;
-        };
-
-        tbody.innerHTML += `<tr><td colspan="${daysTotal+2}" class="section-header-row">EQUIPE DIURNA (DIA)</td></tr>`;
-        this.teams.day.forEach((p, i) => tbody.innerHTML += createRow(p, 'day', i));
-        
-        tbody.innerHTML += `<tr><td colspan="${daysTotal+2}" class="section-header-row">EQUIPE NOTURNA (NOITE)</td></tr>`;
-        this.teams.night.forEach((p, i) => tbody.innerHTML += createRow(p, 'night', i));
-
-        this.renderFooter();
+        document.getElementById('footer-list-1').innerHTML = makeList(true);
+        document.getElementById('footer-list-2').innerHTML = makeList(false);
+        document.getElementById('footer-list-3').innerHTML = makeList(false);
     },
 
-    renderFooter() {
-        const tasksDefault = ["Hidrantes de Parede","Bombas de Incêndio","Portas de Emergência","Aterramento e SPDA","Portas de Emergência","Hidrantes de Parede","Aterramento e SPDA","Luminárias de Emergência","Bombas de Incêndio"];
-        const allStaff = [...this.teams.day, ...this.teams.night];
+    updateDashboardWidget() {
+        // Logic to update the home screen "Plantão Hoje"
+        const d = new Date();
+        const todayIdx = d.getDate() - 1; // 0-based
         
-        const createList = (listId, withTask) => {
-            const container = document.getElementById(listId);
-            container.innerHTML = allStaff.map((p, i) => `
-                <div class="task-row">
-                    <span class="task-name">${p.name.split(' ')[0]}</span>
-                    <span class="task-desc" contenteditable="true" id="${listId}_t_${p.id}" onblur="GlobalManager.save(this)">${withTask ? (tasksDefault[i] || "") : ""}</span>
-                </div>
-            `).join("");
-        };
-        createList("listCheck1", true);
-        createList("listCheck2", false);
-        createList("listCheck3", false);
-        GlobalManager.init();
-    },
+        let active = [];
+        const check = (list, role) => list.forEach(m => {
+            if(m.ptr[todayIdx] === 0 || m.ptr[todayIdx] === 1) active.push({...m, role});
+        });
+        check(this.data.day, "Dia");
+        check(this.data.night, "Noite");
 
-    initDashboardWidget() {
-        const now = new Date();
-        const day = now.getDate();
-        const monthIdx = now.getMonth();
-        const weekNames = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+        const el = document.getElementById('dash-team-list');
+        const countEl = document.getElementById('dash-plantao-count');
         
-        document.getElementById('dashboardDate').innerHTML = `HOSPITAL SANTA MARTA<br><span style="color:#1e293b; font-size:14px;">${weekNames[now.getDay()]}, ${day} DE ${DB.config.months[monthIdx].substring(0,3)}</span>`;
-        document.getElementById('shiftLabel').innerText = `Equipe do dia ${day}/${monthIdx+1}`;
-
-        const dayIndex = day - 1; 
-        const activeTeam = [];
-        
-        const checkTeam = (list, typeLabel) => {
-            list.forEach(member => {
-                const statusVal = member.ptr[dayIndex] !== undefined ? member.ptr[dayIndex] : 2;
-                if (statusVal === 0 || statusVal === 1) {
-                    activeTeam.push({ ...member, role: typeLabel });
-                }
-            });
-        };
-
-        checkTeam(this.teams.day, "Brigadista (Dia)");
-        checkTeam(this.teams.night, "Brigadista (Noite)");
-
-        const container = document.getElementById('teamListContainer');
-        container.innerHTML = "";
-        if(activeTeam.length === 0) {
-            container.innerHTML = "<div style='text-align:center; font-size:12px; opacity:0.7;'>Ninguém escalado hoje.</div>";
-        } else {
-            activeTeam.forEach(p => {
-                const initials = p.name.split(" ").map(n=>n[0]).join("").substring(0,2);
-                container.innerHTML += `
-                    <div class="team-member">
-                        <img src="https://ui-avatars.com/api/?name=${initials}&background=random&color=fff" alt="${p.name}">
-                        <div style="line-height:1.2;">
-                            <h6 style="font-size:13px; font-weight:600;">${p.name.split(" ")[0] + " " + (p.name.split(" ")[1] || "")}</h6>
-                            <span style="font-size:10px; opacity:0.7;">${p.id} • ${p.role}</span>
-                        </div>
+        if(el) {
+            el.innerHTML = active.map(p => `
+                <div class="flex items-center gap-3 bg-slate-800 p-2 rounded">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center font-bold text-xs">${p.name.substring(0,2)}</div>
+                    <div>
+                        <div class="font-bold text-sm leading-none">${p.name}</div>
+                        <div class="text-[10px] text-slate-400">${p.role}</div>
                     </div>
-                `;
-            });
+                </div>
+            `).join('') || '<div class="text-slate-500 italic text-sm">Ninguém escalado.</div>';
         }
+        if(countEl) countEl.innerText = active.length;
+        
+        const teamNames = active.map(p => p.name.split(' ')[0]).join(', ');
+        const teamLabel = document.getElementById('dash-plantao-team');
+        if(teamLabel) teamLabel.innerText = teamNames || 'Sem escala hoje';
     }
 };
