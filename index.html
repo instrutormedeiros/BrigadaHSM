@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.G.E - Brigada HSM</title>
+    <title>S.G.E - Painel Integrado H.S.M.</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
@@ -15,179 +15,88 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
-    <aside class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white flex flex-col z-50 shadow-xl transition-all">
-        <div class="p-6 border-b border-slate-800">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="bg-blue-600 p-2 rounded-lg"><i class="ph-fill ph-fire text-xl"></i></div>
-                <div>
-                    <h2 class="font-bold text-lg leading-tight" contenteditable="true" id="brand_title" onblur="Global.save(this)">BRIGADA HSM</h2>
-                    <span class="text-xs text-slate-400" contenteditable="true" id="brand_sub" onblur="Global.save(this)">Hospital Santa Marta</span>
-                </div>
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="bg-blue-600 text-white p-2 rounded-lg shadow-lg shadow-blue-500/30 mb-2">
+                <i class="ph-fill ph-fire text-2xl"></i>
             </div>
-            <div class="flex items-center gap-3 bg-slate-800 p-3 rounded-lg">
-                <img src="https://ui-avatars.com/api/?name=Medeiros&background=2563eb&color=fff" class="w-10 h-10 rounded-full border-2 border-blue-500">
-                <div>
-                    <div class="text-sm font-bold" contenteditable="true" id="user_name" onblur="Global.save(this)">Medeiros</div>
-                    <div class="text-xs text-blue-400 font-medium" contenteditable="true" id="user_role" onblur="Global.save(this)">Chefe de Brigada</div>
-                </div>
-            </div>
+            <h2 contenteditable="true" onblur="Global.save(this)" id="brand_title">BRIGADA HSM</h2>
+            <span contenteditable="true" onblur="Global.save(this)" id="brand_sub">Gestão Integrada</span>
         </div>
 
-        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-            <button onclick="Global.router('dashboard')" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
-                <i class="ph ph-squares-four text-lg"></i> Visão Geral
+        <nav class="nav-menu">
+            <button onclick="Global.router('dashboard')" class="nav-item active" id="nav-dashboard">
+                <i class="ph-bold ph-chart-pie-slice"></i> Indicadores
             </button>
-            <button onclick="Global.router('escala')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
-                <i class="ph ph-calendar-check text-lg"></i> Escala
+            <button onclick="Global.router('escala')" class="nav-item" id="nav-escala">
+                <i class="ph-bold ph-calendar-check"></i> Escala
             </button>
-            <button onclick="Global.router('indicadores')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
-                <i class="ph ph-chart-line-up text-lg"></i> Indicadores
+            <button onclick="Global.router('treinamentos')" class="nav-item" id="nav-treinamentos">
+                <i class="ph-bold ph-graduation-cap"></i> Treinamentos
             </button>
-            <button onclick="Global.router('treinamentos')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
-                <i class="ph ph-graduation-cap text-lg"></i> Treinamentos
-            </button>
-        </nav>
+            </nav>
 
-        <div class="p-4 border-t border-slate-800">
-            <button class="w-full flex items-center justify-center gap-2 text-slate-400 hover:text-red-400 text-sm font-medium transition-colors">
-                <i class="ph ph-sign-out"></i> Sair do Sistema
-            </button>
+        <div class="user-profile">
+            <div class="flex items-center gap-3">
+                <img src="https://ui-avatars.com/api/?name=Medeiros&background=2563eb&color=fff" class="w-10 h-10 rounded-full border-2 border-blue-500">
+                <div>
+                    <div class="text-sm font-bold text-white">Medeiros</div>
+                    <div class="text-xs text-blue-300">Chefe de Brigada</div>
+                </div>
+            </div>
         </div>
     </aside>
 
-    <main class="ml-64 p-8 min-h-screen">
+    <main class="main-content">
         
-        <header class="flex justify-between items-end mb-8">
+        <header id="app-header" class="bg-white border-b border-slate-200 sticky top-0 z-40 px-8 py-4 mb-8 flex justify-between items-center shadow-sm">
             <div>
-                <h1 class="text-2xl font-bold text-slate-900" id="page-title">Painel de Controle</h1>
-                <p class="text-slate-500 text-sm mt-1" id="page-subtitle">Bem-vindo ao SGE Brigada.</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center gap-2">
+                <h1 class="text-xl font-bold text-slate-800" id="page-title">Painel de Controle</h1>
+                <div class="flex items-center gap-2 text-xs text-slate-500 mt-1">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wide">HSM Operante</span>
+                    <span>Sistema Operante • <span id="current-date"></span></span>
                 </div>
-                <div class="text-right">
-                    <div class="text-xs font-bold text-slate-400 uppercase">Hoje</div>
-                    <div class="text-sm font-bold text-slate-700" id="current-date">--/--/----</div>
-                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="window.print()" class="text-slate-400 hover:text-blue-600 transition p-2" title="Imprimir">
+                    <i class="ph-fill ph-printer text-xl"></i>
+                </button>
             </div>
         </header>
 
-        <div id="view-dashboard" class="view-section space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="kpi-card bg-blue-600 text-white border-none shadow-blue-200 shadow-xl">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-blue-100 text-xs font-bold uppercase tracking-wider">Plantão Hoje</p>
-                            <h3 class="text-2xl font-bold mt-1" id="dash-plantao-count">--</h3>
-                        </div>
-                        <div class="bg-blue-500 p-2 rounded-lg"><i class="ph-fill ph-users text-xl text-white"></i></div>
-                    </div>
-                    <div class="mt-4 text-xs text-blue-100 flex items-center gap-1">
-                        <i class="ph-fill ph-clock"></i> <span id="dash-plantao-team">Equipe carregando...</span>
-                    </div>
+        <div id="view-dashboard" class="view-section active fade-enter">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+                    <button onclick="DashApp.filterYear('2025')" id="btn-year-2025" class="slicer-btn slicer-active">2025</button>
+                    <button onclick="DashApp.filterYear('2026')" id="btn-year-2026" class="slicer-btn">2026</button>
                 </div>
-
-                <div class="kpi-card">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="kpi-label">Conformidade (Nov)</p>
-                            <h3 class="kpi-value text-emerald-600">97.1%</h3>
-                        </div>
-                        <div class="bg-emerald-50 p-2 rounded-lg"><i class="ph-fill ph-shield-check text-xl text-emerald-600"></i></div>
-                    </div>
-                    <div class="mt-4 flex gap-2">
-                        <span class="badge badge-success">Meta Atingida</span>
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="kpi-label">Obstruções Ativas</p>
-                            <h3 class="kpi-value text-orange-500">12</h3>
-                        </div>
-                        <div class="bg-orange-50 p-2 rounded-lg"><i class="ph-fill ph-warning-circle text-xl text-orange-500"></i></div>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-4">8 Extintores • 4 Hidrantes</p>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="kpi-label">Capacitação 2026</p>
-                            <h3 class="kpi-value text-purple-600" id="dash-train-pct">0%</h3>
-                        </div>
-                        <div class="bg-purple-50 p-2 rounded-lg"><i class="ph-fill ph-graduation-cap text-xl text-purple-600"></i></div>
-                    </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full mt-4 overflow-hidden">
-                        <div class="bg-purple-500 h-full transition-all duration-1000" id="dash-train-bar" style="width: 0%"></div>
-                    </div>
-                </div>
+                <div class="flex gap-1 overflow-x-auto" id="month-slicer-container"></div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-notebook text-blue-500"></i> Diário de Ocorrências</h3>
-                        <button class="text-xs font-bold text-blue-600 hover:underline">Ver Histórico</button>
-                    </div>
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="flex flex-col items-center">
-                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                <div class="w-0.5 h-full bg-slate-100 mt-2"></div>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-400">09:15 • Hoje</span>
-                                <h4 class="font-bold text-slate-800" contenteditable="true" id="occ_1_t" onblur="Global.save(this)">Vistoria Ala Pediátrica</h4>
-                                <p class="text-sm text-slate-600 mt-1" contenteditable="true" id="occ_1_d" onblur="Global.save(this)">Rotas de fuga verificadas e desobstruídas.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4">
-                            <div class="flex flex-col items-center">
-                                <div class="w-2 h-2 rounded-full bg-orange-500"></div>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-400">14:30 • Ontem</span>
-                                <h4 class="font-bold text-slate-800" contenteditable="true" id="occ_2_t" onblur="Global.save(this)">Manutenção Preventiva</h4>
-                                <p class="text-sm text-slate-600 mt-1" contenteditable="true" id="occ_2_d" onblur="Global.save(this)">Recarga dos extintores do Bloco C iniciada.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 rounded-xl shadow-lg p-6 text-white flex flex-col">
-                    <h3 class="font-bold mb-1 flex items-center gap-2"><i class="ph-fill ph-users-three"></i> Em Turno Agora</h3>
-                    <p class="text-xs text-slate-400 mb-6" id="dash-shift-detail">Carregando...</p>
-                    
-                    <div id="dash-team-list" class="space-y-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
-                        </div>
-                    
-                    <button onclick="Global.router('escala')" class="mt-auto pt-6 w-full text-center text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors">
-                        Ver Escala Completa →
-                    </button>
-                </div>
+            <div class="flex border-b border-slate-200 gap-6 mb-6">
+                <button onclick="DashApp.switchTab('overview')" id="tab-overview" class="tab-btn active">Visão Geral</button>
+                <button onclick="DashApp.switchTab('conformidade')" id="tab-conformidade" class="tab-btn">Conformidade</button>
+                <button onclick="DashApp.switchTab('evacuacao')" id="tab-evacuacao" class="tab-btn">Evacuação</button>
             </div>
+
+            <div id="dashboard-dynamic-content"></div>
         </div>
 
-        <div id="view-escala" class="view-section hidden">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex justify-between items-center">
+        <div id="view-escala" class="view-section hidden fade-enter">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-6 flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <button onclick="Escala.changeMonth(-1)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"><i class="ph-bold ph-caret-left"></i></button>
-                    <h2 class="text-lg font-bold text-slate-800 uppercase tracking-wide w-40 text-center" id="escala-month-display">JANEIRO 2026</h2>
-                    <button onclick="Escala.changeMonth(1)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"><i class="ph-bold ph-caret-right"></i></button>
+                    <button onclick="EscalaApp.changeMonth(-1)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition"><i class="ph-bold ph-caret-left"></i></button>
+                    <h2 class="text-xl font-black text-slate-800 uppercase w-48 text-center" id="escala-month-display">JANEIRO 2026</h2>
+                    <button onclick="EscalaApp.changeMonth(1)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="Escala.reset()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">Resetar</button>
-                    <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors flex items-center gap-2"><i class="ph-bold ph-printer"></i> Imprimir</button>
+                    <button onclick="EscalaApp.reset()" class="slicer-btn bg-slate-100 border-transparent">Resetar</button>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left" id="escala-table">
+                    <table class="w-full text-sm text-left data-table" id="escala-table">
                         <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-xs" id="escala-head"></thead>
                         <tbody class="divide-y divide-slate-100" id="escala-body"></tbody>
                     </table>
@@ -195,60 +104,42 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <h4 class="text-xs font-bold text-purple-600 uppercase mb-3 border-b border-purple-100 pb-2">Checklist Individual</h4>
-                    <div id="footer-list-1" class="space-y-2 text-xs"></div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="text-sm font-bold text-purple-600 uppercase mb-3 border-b border-purple-100 pb-2">Checklist Individual</h4>
+                    <div id="footer-list-1" class="space-y-2 text-xs font-medium"></div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <h4 class="text-xs font-bold text-blue-600 uppercase mb-3 border-b border-blue-100 pb-2">Escala de Extintores</h4>
-                    <div id="footer-list-2" class="space-y-2 text-xs"></div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="text-sm font-bold text-blue-600 uppercase mb-3 border-b border-blue-100 pb-2">Escala Extintores</h4>
+                    <div id="footer-list-2" class="space-y-2 text-xs font-medium"></div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <h4 class="text-xs font-bold text-orange-600 uppercase mb-3 border-b border-orange-100 pb-2">Obstruções</h4>
-                    <div id="footer-list-3" class="space-y-2 text-xs"></div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="text-sm font-bold text-orange-600 uppercase mb-3 border-b border-orange-100 pb-2">Obstruções</h4>
+                    <div id="footer-list-3" class="space-y-2 text-xs font-medium"></div>
                 </div>
             </div>
         </div>
 
-        <div id="view-indicadores" class="view-section hidden space-y-6">
-            <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-                <div class="flex gap-1 bg-slate-100 p-1 rounded-lg">
-                    <button onclick="Indicadores.setTab('overview', this)" class="dash-tab active">Visão Executiva</button>
-                    <button onclick="Indicadores.setTab('conformidade', this)" class="dash-tab">Conformidade</button>
-                    <button onclick="Indicadores.setTab('evacuacao', this)" class="dash-tab">Evacuação</button>
-                </div>
-                <div class="flex items-center gap-2 px-4">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Ano Base:</span>
-                    <select id="ind-year-select" onchange="Indicadores.setYear(this.value)" class="text-sm font-bold bg-transparent text-slate-700 border-none focus:ring-0 cursor-pointer">
-                        <option value="2025">2025</option>
-                        <option value="2026">2026</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="indicadores-container">
-                </div>
-        </div>
-
-        <div id="view-treinamentos" class="view-section hidden space-y-6">
-            <div class="bg-slate-900 rounded-xl p-6 text-white shadow-lg flex items-center justify-between">
-                <div>
-                    <h3 class="font-bold text-lg">Progresso da Brigada</h3>
-                    <p class="text-slate-400 text-sm">Ciclo de Capacitação 2026</p>
-                </div>
-                <div class="text-right w-1/3">
-                    <div class="text-3xl font-bold mb-1" id="train-total-pct">0%</div>
-                    <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
-                        <div class="bg-emerald-500 h-full transition-all duration-1000" id="train-total-bar" style="width: 0%"></div>
+        <div id="view-treinamentos" class="view-section hidden fade-enter">
+            <div class="bg-slate-800 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden mb-8">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-overlay filter blur-[80px] opacity-20 animate-pulse"></div>
+                <div class="relative z-10 flex justify-between items-end">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-2">Plano de Ensino 2026</h2>
+                        <p class="text-slate-400">Capacitação Continuada</p>
+                        <div class="flex gap-2 mt-6">
+                            <button onclick="TreinamentosApp.filter('todos', this)" class="filter-chip active">Todos</button>
+                            <button onclick="TreinamentosApp.filter('Liderança', this)" class="filter-chip">Chefia</button>
+                            <button onclick="TreinamentosApp.filter('Técnico', this)" class="filter-chip">Operacional</button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-4xl font-bold mb-1" id="train-total-pct">0%</div>
+                        <div class="text-xs text-blue-300 uppercase font-bold tracking-wider">Concluído</div>
                     </div>
                 </div>
-            </div>
-
-            <div class="flex gap-2 overflow-x-auto pb-2">
-                <button onclick="Treinamentos.filter('todos', this)" class="filter-chip active">Todos</button>
-                <button onclick="Treinamentos.filter('Liderança', this)" class="filter-chip">Liderança</button>
-                <button onclick="Treinamentos.filter('Técnico', this)" class="filter-chip">Técnico</button>
-                <button onclick="Treinamentos.filter('Comportamental', this)" class="filter-chip">Comportamental</button>
+                <div class="w-full bg-white/10 h-2 rounded-full mt-6 overflow-hidden">
+                    <div id="train-total-bar" class="h-full bg-gradient-to-r from-blue-400 to-emerald-400 transition-all duration-1000" style="width: 0%"></div>
+                </div>
             </div>
 
             <div id="training-grid" class="grid grid-cols-1 gap-4"></div>
@@ -258,20 +149,19 @@
 
     <script src="assets/js/database.js"></script>
     <script src="assets/js/global.js"></script>
+    <script src="assets/js/dashboard.js"></script>
     <script src="assets/js/escala.js"></script>
-    <script src="assets/js/indicadores.js"></script>
     <script src="assets/js/treinamentos.js"></script>
 
     <script>
-        // Init Global
-        window.onload = () => {
+        // Inicializador Mestre
+        document.addEventListener('DOMContentLoaded', () => {
             Global.init();
-            Escala.init(); // Important: Loads scale data which feeds the dashboard widget
-            
-            // Set date
-            const d = new Date();
-            document.getElementById('current-date').innerText = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-        };
+            // Inicia tudo para garantir que os dados estejam prontos
+            DashApp.init();
+            EscalaApp.init();
+            TreinamentosApp.init();
+        });
     </script>
 </body>
 </html>
