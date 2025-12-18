@@ -496,6 +496,73 @@ button, .action-btn, .filter-btn, .btn-add-eq, .slicer-btn {
             color: white !important;
             box-shadow: 0 0 0 2px rgba(255,255,255,0.3) !important;
         }
+/* === CSS TELEMETRIA COMPLETO (LAYOUT + ANIMAÇÃO) === */
+        .live-monitor-section { margin-top: 30px; animation: fadeIn 0.6s ease-out; }
+        
+        /* Força o Grid a ter 3 colunas em telas grandes */
+        .telemetry-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); /* FORÇA 3 COLUNAS */
+            gap: 20px; 
+        }
+        /* Ajuste para telas menores (Responsivo) */
+        @media (max-width: 1024px) {
+            .telemetry-grid { grid-template-columns: 1fr; }
+        }
+
+        .telemetry-card { 
+            background: linear-gradient(145deg, #1e293b, #0f172a); 
+            border-radius: 12px; padding: 20px; color: white; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        .t-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.9rem; font-weight: 600; color: #94a3b8; }
+        .t-footer { margin-top: 15px; font-size: 0.75rem; color: #64748b; font-family: monospace; }
+
+        .live-badge { 
+            background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; 
+            border: 1px solid rgba(16, 185, 129, 0.3); animation: pulse 2s infinite; 
+        }
+
+        /* Medidor */
+        .meter-val { font-size: 1.8rem; font-weight: 700; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+        .meter-bar-bg { width: 100%; height: 8px; background: #334155; border-radius: 4px; overflow: hidden; }
+        .meter-bar-fill { height: 100%; background: #3b82f6; width: 85%; border-radius: 4px; box-shadow: 0 0 10px #3b82f6; }
+        
+        /* Loops */
+        .loops-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .loop-item { background: rgba(255,255,255,0.05); padding: 5px 8px; border-radius: 4px; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+        .led { width: 8px; height: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px currentColor; }
+        .led.green { background-color: #10b981; color: #10b981; }
+        .led.red { background-color: #ef4444; color: #ef4444; }
+
+        /* Tanque e Animação de Água */
+        .water-tank {
+            height: 60px; background: rgba(255,255,255,0.05); border-radius: 8px; position: relative; overflow: hidden; border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .water-level {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 85%;
+            background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%); opacity: 0.9;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+            animation: water-surface 3s infinite ease-in-out alternate;
+        }
+        .bubbles .bubble { position: absolute; bottom: -10px; background: rgba(255, 255, 255, 0.4); border-radius: 50%; animation: rise 4s infinite ease-in; }
+        .bubble:nth-child(1) { width: 6px; height: 6px; left: 20%; animation-duration: 3s; }
+        .bubble:nth-child(2) { width: 4px; height: 4px; left: 50%; animation-duration: 5s; animation-delay: 1s; }
+        .bubble:nth-child(3) { width: 8px; height: 8px; left: 80%; animation-duration: 4s; animation-delay: 2s; }
+
+        /* Animações Keyframes */
+        .animate-pressure { animation: fluctuate 3s ease-in-out infinite; }
+        .blink { animation: blink 1s infinite; }
+        @keyframes fluctuate { 0% { width: 82%; } 50% { width: 86%; } 100% { width: 82%; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes blink { 50% { opacity: 0.3; } }
+        @keyframes rise { 0% { bottom: -10px; opacity: 1; transform: translateX(0); } 50% { transform: translateX(5px); } 100% { bottom: 120%; opacity: 0; transform: translateX(-5px); } }
+        @keyframes water-surface { 0% { transform: scaleY(1); } 100% { transform: scaleY(1.02); } }
     </style>
 </head>
 <body>
@@ -628,7 +695,55 @@ button, .action-btn, .filter-btn, .btn-add-eq, .slicer-btn {
                     <button style="width:100%; margin-top:20px; background:#dc2626; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="switchView('escala', document.querySelectorAll('.nav-item')[1])" contenteditable="true" id="btn_ver_escala" onblur="globalEditor.save(this)">Ver Escala Completa</button>
                 </div>
             </div>
-        </div>
+<div class="live-monitor-section">
+                <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-satellite-dish" style="color: var(--ind-primary); animation: pulse 2s infinite;"></i> 
+                    <span contenteditable="true" id="tele_main_title" onblur="globalEditor.save(this)">Telemetria de Sistemas Críticos</span>
+                </h3>
+                
+                <div class="telemetry-grid">
+                    <div class="telemetry-card">
+                        <div class="t-header">
+                            <span><i class="fa-solid fa-gauge-high"></i> <span contenteditable="true" id="t1_title" onblur="globalEditor.save(this)">Pressurização</span></span>
+                            <span class="live-badge" contenteditable="true" id="t1_badge" onblur="globalEditor.save(this)">ONLINE</span>
+                        </div>
+                        <div class="meter-container">
+                            <div class="meter-val" contenteditable="true" id="t1_val" onblur="globalEditor.save(this)">8.2 kgf/cm²</div>
+                            <div class="meter-bar-bg"><div class="meter-bar-fill animate-pressure"></div></div>
+                        </div>
+                        <div class="t-footer" contenteditable="true" id="t1_foot" onblur="globalEditor.save(this)">Status: Automático | Rede Estável</div>
+                    </div>
+
+                    <div class="telemetry-card">
+                        <div class="t-header">
+                            <span><i class="fa-solid fa-server"></i> <span contenteditable="true" id="t2_title" onblur="globalEditor.save(this)">Central Alarme</span></span>
+                            <span class="live-badge" contenteditable="true" id="t2_badge" onblur="globalEditor.save(this)">ONLINE</span>
+                        </div>
+                        <div class="loops-grid">
+                            <div class="loop-item"><div class="led green"></div> <span contenteditable="true" id="loop1" onblur="globalEditor.save(this)">Loop 01 (Térreo)</span></div>
+                            <div class="loop-item"><div class="led green"></div> <span contenteditable="true" id="loop2" onblur="globalEditor.save(this)">Loop 02 (UTI)</span></div>
+                            <div class="loop-item"><div class="led green"></div> <span contenteditable="true" id="loop3" onblur="globalEditor.save(this)">Loop 03 (CC)</span></div>
+                            <div class="loop-item"><div class="led red blink"></div> <span contenteditable="true" id="loop4" onblur="globalEditor.save(this)">Loop 04 (Manut.)</span></div>
+                        </div>
+                        <div class="t-footer" style="color:var(--warning-orange);" contenteditable="true" id="t2_foot" onblur="globalEditor.save(this)">! Atenção: Falha no Loop 04</div>
+                    </div>
+
+                    <div class="telemetry-card">
+                        <div class="t-header">
+                            <span><i class="fa-solid fa-water"></i> <span contenteditable="true" id="t3_title" onblur="globalEditor.save(this)">Nível RTI</span></span>
+                            <span class="live-badge" contenteditable="true" id="t3_badge" onblur="globalEditor.save(this)">98%</span>
+                        </div>
+                        <div class="water-tank">
+                            <div class="water-level"></div>
+                            <div class="bubbles">
+                                <span class="bubble"></span><span class="bubble"></span><span class="bubble"></span>
+                            </div>
+                        </div>
+                        <div class="t-footer" contenteditable="true" id="t3_foot" onblur="globalEditor.save(this)">Volume: 35.000 Litros</div>
+                    </div>
+                </div>
+            </div>
+</div>
 
         <div id="view-indicadores" class="view-section">
             <div id="app-header"></div>
