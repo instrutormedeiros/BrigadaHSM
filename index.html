@@ -168,8 +168,17 @@
         .st-sn { background-color: var(--sn-bg); color: var(--sn-txt); }
         .st-f  { background-color: var(--f-bg);  color: var(--f-txt); }
         .st-ferias { background-color: var(--ferias-bg); color: var(--ferias-txt); font-size: 0.65rem; }
-        .weekend-th { color: #dc2626 !important; background-color: rgba(220, 38, 38, 0.05) !important;font-weight: 800 !important; }
-        .weekend-col { background-color: rgba(203, 213, 225, 0.4) !important; border-left: 1px solid rgba(0,0,0,0.05); border-right: 1px solid rgba(0,0,0,0.05);}
+        .weekend-th { 
+            color: #dc2626 !important; 
+            background-color: rgba(220, 38, 38, 0.1) !important; 
+            font-weight: 800 !important;
+            border-right: 1px solid #e2e8f0 !important;
+        }
+        .weekend-col { 
+            /* Removemos o 'background-color' daqui para não apagar o Verde/Azul/Laranja */
+            border-right: 1px solid #e2e8f0 !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
         
         .footer-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 5px; }
         .check-card { background: white; border-radius: 12px; border: 1px solid var(--border-light); display: flex; flex-direction: column; overflow: hidden; }
@@ -1821,4 +1830,5 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
     </script>
 </body>
 </html>
+
 
