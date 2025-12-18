@@ -29,7 +29,7 @@
     </script>
     
     <style>
-        /* === VARIÁVEIS GERAIS (SISTEMA BASE) === */
+        /* === VARIÁVEIS GERAIS === */
         :root {
             --sidebar-bg: #0f172a;
             --main-bg: #f3f4f6;
@@ -96,13 +96,15 @@
 
         /* === MAIN CONTENT AREA & VIEW CONTROL === */
         .main-content { flex: 1; padding: 24px 32px; overflow-y: auto; position: relative; }
+        
+        /* Oculta todas as views por padrão */
         .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         
-        /* Regra padrão para ativar views */
+        /* Exibe a view ativa */
         .view-section.active { display: block; }
         
-        /* CORREÇÃO DO BUG DA INVASÃO: Regra específica para o container de Indicadores */
-        /* O Tailwind 'flex' estava conflitando, agora controlamos aqui */
+        /* CORREÇÃO DO PAINEL INDICADORES:
+           Força display flex quando ativo para layout correto */
         #view-indicadores.active {
             display: flex !important;
             flex-direction: column;
@@ -219,12 +221,18 @@
 
         .mistake-alert { margin-top: 1.5rem; padding: 1rem; background: #fef2f2; border-radius: 8px; color: #b91c1c; font-size: 0.85rem; display: flex; gap: 10px; align-items: flex-start; }
 
-        /* === EQUIPAMENTOS === */
+        /* === EQUIPAMENTOS (Correção "Sumindo e Torto") === */
         .equip-grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
         .equip-box { background: white; border-radius: 12px; border: 1px solid var(--border-light); overflow: hidden; }
         .equip-box-header { padding: 15px; font-weight: 700; color: white; display: flex; justify-content: space-between; align-items: center; }
         .bg-ext { background: #ef4444; } .bg-hid { background: #3b82f6; } .bg-luz { background: #f59e0b; }
-        .equip-table { width: 100%; border-collapse: collapse; }
+        
+        /* CORREÇÃO DO LAYOUT DA TABELA */
+        .equip-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            table-layout: fixed; /* TRAVA A LARGURA */
+        }
         
         .equip-table td { 
             padding: 8px 12px; 
@@ -232,8 +240,16 @@
             font-size: 0.85rem;
             vertical-align: middle; 
             height: 40px; 
+            overflow-wrap: break-word; /* QUEBRA O TEXTO SE FOR LONGO */
+            word-break: break-word;
         }
         
+        /* Define larguras das colunas (aproximado) */
+        .equip-table tr td:nth-child(1) { width: 30%; } /* ID */
+        .equip-table tr td:nth-child(2) { width: 40%; } /* Local */
+        .equip-table tr td:nth-child(3) { width: 20%; } /* Validade */
+        .equip-table tr td:nth-child(4) { width: 10%; } /* Trash */
+
         .equip-table [contenteditable="true"] {
             min-height: 20px; 
             display: block;
@@ -271,84 +287,21 @@
         .icon-opt { font-size: 1.2rem; padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; border: 1px solid #e2e8f0; color: #64748b; }
         .icon-opt:hover { background: var(--primary-red); color: white; }
 
-        /* === ESTILOS PREMIUM DO NOVO PAINEL DE INDICADORES === */
-        
-        .card-interactive { 
-            transition: all var(--ind-transition); 
-            cursor: pointer; 
-            border: 1px solid transparent; 
-            position: relative; 
-            overflow: hidden; 
-        }
-        
-        .card-interactive:hover { 
-            transform: translateY(-4px); 
-            box-shadow: var(--ind-shadow-lg); 
-            border-color: #cbd5e1; 
-        }
-        
-        /* Botões de Filtro Slicer */
-        .slicer-btn { 
-            background: white; 
-            border: 1px solid #e2e8f0; 
-            color: #64748b; 
-            font-weight: 600; 
-            transition: all 0.2s; 
-            text-transform: uppercase; 
-            letter-spacing: 0.025em; 
-            cursor: pointer; 
-            border-radius: 6px;
-        }
+        /* === ESTILOS INDICADORES === */
+        .card-interactive { transition: all var(--ind-transition); cursor: pointer; border: 1px solid transparent; position: relative; overflow: hidden; }
+        .card-interactive:hover { transform: translateY(-4px); box-shadow: var(--ind-shadow-lg); border-color: #cbd5e1; }
+        .slicer-btn { background: white; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.025em; cursor: pointer; border-radius: 6px; }
         .slicer-btn:hover { background: #f8fafc; border-color: #cbd5e1; color: #334155; }
         .slicer-active { background: var(--ind-primary) !important; border-color: var(--ind-primary) !important; color: white !important; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
-        
-        /* KPI Cards Premium */
-        .kpi-card { 
-            background: white; 
-            padding: 1.5rem; 
-            border-radius: 1rem; 
-            border: 1px solid #e2e8f0; 
-            box-shadow: var(--shadow-sm); 
-            position: relative; 
-            overflow: hidden; 
-        }
+        .kpi-card { background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
         .kpi-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; }
         .kpi-value { font-size: 2.5rem; font-weight: 800; line-height: 1; color: #0f172a; font-variant-numeric: tabular-nums; }
-        
-        /* Cards de Insight com Efeito Glass */
-        .insight-card { 
-            background: rgba(248, 250, 252, 0.8); 
-            border: 1px solid #e2e8f0; 
-            padding: 0.85rem; 
-            border-radius: 0.5rem; 
-            display: flex; 
-            gap: 0.75rem; 
-            align-items: start; 
-            transition: all 0.2s; 
-            backdrop-filter: blur(4px);
-        }
+        .insight-card { background: rgba(248, 250, 252, 0.8); border: 1px solid #e2e8f0; padding: 0.85rem; border-radius: 0.5rem; display: flex; gap: 0.75rem; align-items: start; transition: all 0.2s; backdrop-filter: blur(4px); }
         .insight-card:hover { background: white; box-shadow: var(--shadow-md); transform: translateX(4px); border-color: #cbd5e1; }
         .insight-icon { color: var(--ind-primary); font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
-
-        /* Container do Painel */
         .ind-container { width: 100%; height: 100%; display: flex; flex-direction: column; background: #f8fafc; }
-        
-        /* Texto com Gradiente */
-        .text-gradient {
-            background: var(--ind-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Pulse Animation */
-        .pulse-dot {
-            width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--success-green);
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+        .pulse-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--success-green); animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        /* Progress Bars Premium */
         .progress-bar-container { width: 100%; background: #e2e8f0; height: 8px; border-radius: 9999px; overflow: hidden; position: relative; }
         .progress-bar-fill { height: 100%; border-radius: 9999px; transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); width: 0%; position: relative; overflow: hidden; }
         .progress-bar-fill::after { content: ''; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shimmer 2s infinite; }
@@ -361,6 +314,187 @@
             .view-section.active { display: block; }
             .btn-add-eq, .training-controls, .escala-actions { display: none; }
             .report-paper { box-shadow: none; border: none; margin: 0; width: 100%; }
+        }
+/* 1. FUNDO E AMBIENTAÇÃO */
+body {
+    background: radial-gradient(circle at 10% 20%, rgb(243, 244, 246) 0%, rgb(229, 231, 235) 90%);
+}
+
+/* 2. EFEITO GLASSMORPHISM (VIDRO) NAS CARDS */
+.card, .kpi-card, .table-paper, .normas-intro-box, .equip-box, .check-card, .report-paper {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 15px -3px rgba(0, 0, 0, 0.05),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5); /* Borda interna de luz */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efeito Elástico */
+}
+
+/* Hover Lift - Sensação de flutuar */
+.card:hover, .kpi-card:hover, .check-card:hover, .equip-box:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(59, 130, 246, 0.1); /* Brilho sutil azul */
+    z-index: 10;
+}
+
+/* 3. SIDEBAR PROFUNDA */
+.sidebar {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    box-shadow: 5px 0 25px rgba(0,0,0,0.15);
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-item {
+    border-radius: 12px;
+    margin: 4px 12px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.nav-item.active {
+    background: linear-gradient(90deg, rgba(220, 38, 38, 0.9) 0%, rgba(220, 38, 38, 0.5) 100%);
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); /* Glow Vermelho */
+    border-left: none; /* Remove a borda antiga */
+}
+
+/* 4. BOTÕES COM "JUICE" (Glow e Profundidade) */
+button, .action-btn, .filter-btn, .btn-add-eq, .slicer-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Botões Primários (Ação) */
+.escala-actions button, .btn-add-eq, button[onclick="window.print()"] {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.3), 0 2px 4px -1px rgba(249, 115, 22, 0.15);
+    border: none;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.escala-actions button:hover, .btn-add-eq:hover, button[onclick="window.print()"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.4), 0 4px 6px -2px rgba(249, 115, 22, 0.2);
+    filter: brightness(1.1);
+}
+
+.escala-actions button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
+}
+
+/* Botão "Ver Escala Completa" (Vermelho) */
+#btn_ver_escala {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+    transition: 0.3s;
+}
+#btn_ver_escala:hover {
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.5);
+    transform: translateY(-3px);
+}
+
+/* 5. INPUTS E EDITÁVEIS "SOFT" */
+[contenteditable="true"] {
+    transition: all 0.2s ease;
+    border-radius: 6px;
+}
+
+[contenteditable="true"]:hover {
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    backdrop-filter: blur(4px);
+}
+
+[contenteditable="true"]:focus {
+    background: white;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    transform: scale(1.02);
+}
+
+/* 6. STATUS PILLS NEON */
+.status-pill {
+    background: rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    backdrop-filter: blur(4px);
+}
+
+.status-dot {
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* 7. SCROLLBAR MODERNA */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* 8. CARDS ESCUROS (Plantão e Progress) */
+.team-card, .training-progress-card {
+    background: linear-gradient(145deg, #1e293b, #0f172a) !important;
+    box-shadow: 
+        10px 10px 20px rgba(0,0,0,0.2), 
+        -5px -5px 15px rgba(255,255,255,0.05) !important; /* Luz especular */
+    border: 1px solid rgba(255,255,255,0.05);
+}
+/* === CORREÇÃO DO CARTÃO DE BOAS-VINDAS (FIX) === */
+        /* Força a imagem de fundo a voltar, sobrepondo o efeito de vidro branco */
+        .welcome-card {
+            background: linear-gradient(90deg, rgba(26,31,54,0.95) 0%, rgba(26,31,54,0.6) 100%), url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            color: white !important;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Garante que o texto dentro dele seja branco e legível */
+        .welcome-card h2, 
+        .welcome-card p,
+        .welcome-card #dash_hero_title,
+        .welcome-card #dash_hero_sub {
+            color: #ffffff !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* Sombra no texto para leitura */
+        }
+
+        /* Ajuste do editável dentro do cartão escuro para não ficar branco ao passar o mouse */
+        .welcome-card [contenteditable="true"]:hover,
+        .welcome-card [contenteditable="true"]:focus {
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.3) !important;
         }
     </style>
 </head>
@@ -486,15 +620,16 @@
                 </div>
 
                 <div class="team-card">
-                    <h3 style="font-size: 16px;">Plantão Hoje</h3>
+                    <!-- TÍTULO PLANTÃO HOJE AGORA EDITÁVEL -->
+                    <h3 style="font-size: 16px;" contenteditable="true" id="dash_shift_title" onblur="globalEditor.save(this)">Plantão Hoje</h3>
                     <span style="font-size: 11px; opacity:0.7;" id="shiftLabel">Carregando...</span>
                     <div class="team-list" id="teamListContainer"></div>
-                    <button style="width:100%; margin-top:20px; background:#dc2626; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="switchView('escala', document.querySelectorAll('.nav-item')[1])">Ver Escala Completa</button>
+                    <!-- BOTÃO VER ESCALA EDITÁVEL -->
+                    <button style="width:100%; margin-top:20px; background:#dc2626; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="switchView('escala', document.querySelectorAll('.nav-item')[1])" contenteditable="true" id="btn_ver_escala" onblur="globalEditor.save(this)">Ver Escala Completa</button>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW INDICADORES: Corrigida (sem classes invasivas) -->
         <div id="view-indicadores" class="view-section">
             <div id="app-header"></div>
             <!-- Container Interno com Flex para layout de altura total -->
@@ -564,8 +699,8 @@
         <div id="view-ferias" class="view-section" style="height: 100%;">
             <div class="soon-container">
                 <i class="fa-solid fa-umbrella-beach soon-icon"></i>
-                <h2 style="font-size: 2rem; color: #1e293b; margin-bottom: 10px;">EM BREVE</h2>
-                <p>O módulo de gestão de férias está em desenvolvimento.</p>
+                <h2 style="font-size: 2rem; color: #1e293b; margin-bottom: 10px;" contenteditable="true" id="soon_title" onblur="globalEditor.save(this)">EM BREVE</h2>
+                <p contenteditable="true" id="soon_text" onblur="globalEditor.save(this)">O módulo de gestão de férias está em desenvolvimento.</p>
             </div>
         </div>
 
@@ -613,26 +748,30 @@
 
         <div id="view-equipamentos" class="view-section">
             <div class="section-dark-header">
-                <h2>CONTROLE DE EQUIPAMENTOS</h2>
+                <!-- TÍTULO EDITÁVEL AGORA -->
+                <h2 contenteditable="true" id="equip_main_title" onblur="globalEditor.save(this)">CONTROLE DE EQUIPAMENTOS</h2>
             </div>
             <div class="equip-grid-container">
                 <div class="equip-box">
                     <div class="equip-box-header bg-ext">
-                        <span><i class="fa-solid fa-fire-extinguisher"></i> Extintores</span>
+                        <!-- TÍTULO EXTINTORES EDITÁVEL -->
+                        <span><i class="fa-solid fa-fire-extinguisher"></i> <span contenteditable="true" id="eq_title_ext" onblur="globalEditor.save(this)">Extintores</span></span>
                         <button class="btn-add-eq" onclick="equipApp.add('ext')">+ Add</button>
                     </div>
                     <table class="equip-table"><tbody id="tb-ext"></tbody></table>
                 </div>
                 <div class="equip-box">
                     <div class="equip-box-header bg-hid">
-                        <span><i class="fa-solid fa-faucet"></i> Hidrantes</span>
+                        <!-- TÍTULO HIDRANTES EDITÁVEL -->
+                        <span><i class="fa-solid fa-faucet"></i> <span contenteditable="true" id="eq_title_hid" onblur="globalEditor.save(this)">Hidrantes</span></span>
                         <button class="btn-add-eq" onclick="equipApp.add('hid')">+ Add</button>
                     </div>
                     <table class="equip-table"><tbody id="tb-hid"></tbody></table>
                 </div>
                 <div class="equip-box">
                     <div class="equip-box-header bg-luz">
-                        <span><i class="fa-regular fa-lightbulb"></i> Luminárias</span>
+                        <!-- TÍTULO LUMINÁRIAS EDITÁVEL -->
+                        <span><i class="fa-regular fa-lightbulb"></i> <span contenteditable="true" id="eq_title_luz" onblur="globalEditor.save(this)">Luminárias</span></span>
                         <button class="btn-add-eq" onclick="equipApp.add('luz')">+ Add</button>
                     </div>
                     <table class="equip-table"><tbody id="tb-luz"></tbody></table>
@@ -642,11 +781,12 @@
 
         <div id="view-normas" class="view-section">
             <div class="section-dark-header">
-                <h2>BIBLIOTECA DE NORMAS (NRs)</h2>
+                <!-- TÍTULO NORMAS EDITÁVEL -->
+                <h2 contenteditable="true" id="normas_main_title" onblur="globalEditor.save(this)">BIBLIOTECA DE NORMAS (NRs)</h2>
             </div>
             <div class="normas-intro-box">
-                <h3 style="color:#1e293b; margin-bottom:10px;" contenteditable="true">Introdução às Normas Regulamentadoras</h3>
-                <p contenteditable="true" style="color:#64748b;">Abaixo listamos as principais NRs aplicáveis ao ambiente hospitalar do HSM. Clique no item para expandir o resumo técnico.</p>
+                <h3 style="color:#1e293b; margin-bottom:10px;" contenteditable="true" id="normas_intro_title" onblur="globalEditor.save(this)">Introdução às Normas Regulamentadoras</h3>
+                <p contenteditable="true" id="normas_intro_text" onblur="globalEditor.save(this)" style="color:#64748b;">Abaixo listamos as principais NRs aplicáveis ao ambiente hospitalar do HSM. Clique no item para expandir o resumo técnico.</p>
             </div>
             <div id="normas-list-container"></div>
         </div>
@@ -659,14 +799,14 @@
             <div class="report-paper">
                 <div class="doc-header">
                     <img src="https://ui-avatars.com/api/?name=H+S+M&background=dc2626&color=fff&size=64" style="border-radius: 50%; margin-bottom: 10px;">
-                    <h2 class="doc-title" contenteditable="true">RELATÓRIO CONSOLIDADO DE ATIVIDADES PRESTADAS</h2>
-                    <div class="doc-subtitle" contenteditable="true">BRIGADA DE INCÊNDIO – HOSPITAL SANTA MARTA</div>
-                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px; font-weight: bold;" contenteditable="true">PERÍODO: JANEIRO A NOVEMBRO DE 2025</div>
+                    <h2 class="doc-title" contenteditable="true" id="rep_doc_title" onblur="globalEditor.save(this)">RELATÓRIO CONSOLIDADO DE ATIVIDADES PRESTADAS</h2>
+                    <div class="doc-subtitle" contenteditable="true" id="rep_doc_sub" onblur="globalEditor.save(this)">BRIGADA DE INCÊNDIO – HOSPITAL SANTA MARTA</div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px; font-weight: bold;" contenteditable="true" id="rep_doc_period" onblur="globalEditor.save(this)">PERÍODO: JANEIRO A NOVEMBRO DE 2025</div>
                 </div>
 
                 <div class="doc-section">
-                    <div class="doc-h3">PANORAMA GERAL DOS 11 MESES</div>
-                    <div class="doc-text" contenteditable="true">
+                    <div class="doc-h3" contenteditable="true" id="rep_s1_h3" onblur="globalEditor.save(this)">PANORAMA GERAL DOS 11 MESES</div>
+                    <div class="doc-text" contenteditable="true" id="rep_s1_txt" onblur="globalEditor.save(this)">
 De janeiro a novembro de 2025, a Brigada de Incêndio do Hospital Santa Marta atendeu aproximadamente 110 emergências, entre acidentes de trabalho, acidentes de trajeto, mal-estares, exposições a material biológico, princípios de incêndio e resgates em elevadores.
 
 Paralelamente, foram mantidas rotinas mensais de inspeção em hidrantes, extintores, bombas de incêndio, portas corta-fogo, luminárias de emergência e SPDA, além de simulados e treinamentos voltados para evacuação, primeiros socorros e atuação em emergências.
@@ -676,8 +816,8 @@ Ao longo do período, a brigada enfrentou três desafios constantes: falhas reco
                 </div>
 
                 <div class="doc-section">
-                    <div class="doc-h3">DESTAQUES MÊS A MÊS</div>
-                    <div class="doc-text" contenteditable="true">
+                    <div class="doc-h3" contenteditable="true" id="rep_s2_h3" onblur="globalEditor.save(this)">DESTAQUES MÊS A MÊS</div>
+                    <div class="doc-text" contenteditable="true" id="rep_s2_txt" onblur="globalEditor.save(this)">
 Janeiro foi marcado por atendimentos de mal-estar, escoriações, acidente de trajeto e pequenos traumas, ao mesmo tempo em que se iniciou a reorganização da sala da brigada e a conferência geral de equipamentos.
 
 Fevereiro a Outubro seguiram com rotinas intensas de prevenção, acompanhamento de obras e gestão de riscos em áreas críticas, conforme registrado nos checklists diários e livros de ocorrência da brigada.
@@ -685,8 +825,8 @@ Fevereiro a Outubro seguiram com rotinas intensas de prevenção, acompanhamento
                 </div>
 
                 <div class="doc-section">
-                    <div class="doc-h3">CONSIDERAÇÕES FINAIS E 2026</div>
-                    <div class="doc-text" contenteditable="true">
+                    <div class="doc-h3" contenteditable="true" id="rep_s3_h3" onblur="globalEditor.save(this)">CONSIDERAÇÕES FINAIS E 2026</div>
+                    <div class="doc-text" contenteditable="true" id="rep_s3_txt" onblur="globalEditor.save(this)">
 Os pontos mais sensíveis do período estão claramente identificados: elevadores com falhas crônicas e períodos prolongados de inoperância, especialmente os elevadores 10 e 4; central de alarme do ISMEP com placas queimadas e trechos inoperantes; e obstruções reincidentes de hidrantes e extintores em áreas assistenciais e de apoio. Esses fatores impactam diretamente a segurança e a logística hospitalar, exigindo decisões mais estruturais, e não apenas ações corretivas pontuais.
 
 Para os próximos meses, as prioridades sugeridas são: buscar solução definitiva para os elevadores mais problemáticos, com avaliação técnica profunda e eventual substituição de componentes críticos; concluir com urgência a recuperação da central de alarme do ISMEP; intensificar a instalação de sinalizações faltantes; tratar o tema das obstruções de forma mais firme, combinando orientação, diálogo de segurança e responsabilização por setor; e manter o ritmo de simulados e treinamentos, em especial com os novos brigadistas.
@@ -697,12 +837,12 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
 
                 <div style="margin-top: 80px; display: flex; justify-content: space-around;">
                     <div style="text-align: center; border-top: 1px solid #1e293b; padding-top: 10px; width: 40%;">
-                        <div contenteditable="true" style="font-weight: 700;">Medeiros</div>
-                        <div style="font-size: 0.8rem;">Chefe de Brigada</div>
+                        <div contenteditable="true" style="font-weight: 700;" id="rep_sig1_name" onblur="globalEditor.save(this)">Medeiros</div>
+                        <div style="font-size: 0.8rem;" contenteditable="true" id="rep_sig1_role" onblur="globalEditor.save(this)">Chefe de Brigada</div>
                     </div>
                     <div style="text-align: center; border-top: 1px solid #1e293b; padding-top: 10px; width: 40%;">
-                        <div contenteditable="true" style="font-weight: 700;">Diretoria Técnica</div>
-                        <div style="font-size: 0.8rem;">Visto / Aprovação</div>
+                        <div contenteditable="true" style="font-weight: 700;" id="rep_sig2_name" onblur="globalEditor.save(this)">Diretoria Técnica</div>
+                        <div style="font-size: 0.8rem;" contenteditable="true" id="rep_sig2_role" onblur="globalEditor.save(this)">Visto / Aprovação</div>
                     </div>
                 </div>
             </div>
@@ -832,7 +972,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             }
         }
 
-        // === DASHBOARD LOGIC (CORRIGIDA) ===
+        // === DASHBOARD LOGIC ===
         function initDashboard() {
             const now = new Date();
             const d = now.getDate();
