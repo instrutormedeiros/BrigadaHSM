@@ -231,42 +231,119 @@
 
         .mistake-alert { margin-top: 1.5rem; padding: 1rem; background: #fef2f2; border-radius: 8px; color: #b91c1c; font-size: 0.85rem; display: flex; gap: 10px; align-items: flex-start; }
 
-        /* === EQUIPAMENTOS (Correção "Sumindo e Torto") === */
-        .equip-grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .equip-box { background: white; border-radius: 12px; border: 1px solid var(--border-light); overflow: hidden; }
-        .equip-box-header { padding: 15px; font-weight: 700; color: white; display: flex; justify-content: space-between; align-items: center; }
-        .bg-ext { background: #ef4444; } .bg-hid { background: #3b82f6; } .bg-luz { background: #f59e0b; }
+        /* === EQUIPAMENTOS: VERSÃO LISTA VERTICAL (LARGURA TOTAL) === */
         
-        /* CORREÇÃO DO LAYOUT DA TABELA */
+        .equip-grid-container { 
+            display: flex;             /* Mudamos para Flexbox vertical */
+            flex-direction: column;    /* Um embaixo do outro */
+            gap: 40px;                 /* Espaço maior entre os blocos */
+            padding-bottom: 60px;
+            max-width: 100%;           /* Garante uso total da tela */
+        }
+        
+        .equip-box { 
+            background: white; 
+            border-radius: 8px; 
+            border: 1px solid #cbd5e1; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            width: 100%;               /* Caixa ocupa 100% da largura */
+        }
+        
+        .equip-box-header { 
+            padding: 15px 20px;        /* Cabeçalho mais alto */
+            font-weight: 800; 
+            color: white; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-size: 1rem;           /* Fonte maior no título */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .bg-ext { background: linear-gradient(90deg, #ef4444, #b91c1c); } 
+        .bg-hid { background: linear-gradient(90deg, #3b82f6, #1d4ed8); } 
+        .bg-luz { background: linear-gradient(90deg, #f59e0b, #b45309); }
+
+        /* === TABELA LARGURA TOTAL === */
         .equip-table { 
             width: 100%; 
             border-collapse: collapse; 
-            table-layout: fixed; /* TRAVA A LARGURA */
+            table-layout: fixed; /* Mantém as colunas estáveis */
         }
         
-        .equip-table td { 
-            padding: 8px 12px; 
-            border-bottom: 1px solid #f1f5f9; 
-            font-size: 0.85rem;
-            vertical-align: middle; 
-            height: 40px; 
-            overflow-wrap: break-word; /* QUEBRA O TEXTO SE FOR LONGO */
-            word-break: break-word;
+        .equip-table thead th {
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 0.75rem;       /* Fonte levemente maior */
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
         }
+
+        .equip-table tbody tr {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+        .equip-table tbody tr:hover { background: #f8fafc; }
+
+        .equip-table td {
+            padding: 12px 15px;       /* Mais respiro nas células */
+            font-size: 0.85rem;       /* Texto mais legível */
+            color: #334155;
+            vertical-align: middle;
+            text-align: left;
+            
+            /* Tratamento de Texto */
+            white-space: normal !important; 
+            word-wrap: break-word;
+        }
+
+        /* === NOVAS LARGURAS (OTIMIZADAS PARA TELA CHEIA) === */
         
-        /* Define larguras das colunas (aproximado) */
-        .equip-table tr td:nth-child(1) { width: 30%; } /* ID */
-        .equip-table tr td:nth-child(2) { width: 40%; } /* Local */
-        .equip-table tr td:nth-child(3) { width: 20%; } /* Validade */
-        .equip-table tr td:nth-child(4) { width: 10%; } /* Trash */
-
-        .equip-table [contenteditable="true"] {
-            min-height: 20px; 
-            display: block;
-            width: 100%;
+        /* 1. ITEM / ID (20%): Espaço suficiente, já que a tela é larga */
+        .equip-table th:nth-child(1), .equip-table td:nth-child(1) { 
+            width: 20%; 
+            font-weight: 700; 
+            color: #0f172a;
         }
 
-        .btn-add-eq { background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        /* 2. LOCALIZAÇÃO (60%): O REI DO ESPAÇO - Cabe tudo aqui */
+        .equip-table th:nth-child(2), .equip-table td:nth-child(2) { 
+            width: 60%; 
+            line-height: 1.5;
+        }
+
+        /* 3. VALIDADE (15%) */
+        .equip-table th:nth-child(3), .equip-table td:nth-child(3) { 
+            width: 15%; 
+            font-weight: 600;
+            color: #d97706;
+            text-align: center !important; /* Centralizado fica melhor */
+        }
+        .equip-table thead th:nth-child(3) { text-align: center !important; }
+
+        /* 4. LIXEIRA (5%) */
+        .equip-table th:nth-child(4), .equip-table td:nth-child(4) { 
+            width: 5%; 
+            text-align: center;
+        }
+
+        .btn-add-eq { background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; padding: 6px 15px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .btn-add-eq:hover { background: rgba(255,255,255,0.3); }
+        /* === NOVAS LARGURAS OTIMIZADAS (Soma = 100%) === */
+        .equip-table th:nth-child(1), .equip-table td:nth-child(1) { width: 35%; font-weight: 700; } /* ID com mais espaço */
+        .equip-table th:nth-child(2), .equip-table td:nth-child(2) { width: 43%; } /* Localização */
+        .equip-table th:nth-child(3), .equip-table td:nth-child(3) { width: 12%; text-align: center !important; font-size: 0.75rem; } /* Validade */
+        .equip-table th:nth-child(4), .equip-table td:nth-child(4) { width: 10%; text-align: center !important; } /* Lixeira */
+
+        .btn-add-eq { background: rgba(0,0,0,0.2); border: none; color: white; cursor: pointer; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; transition:0.2s; }
+        .btn-add-eq:hover { background: rgba(0,0,0,0.4); }
 
         /* === NORMAS === */
         .normas-intro-box { background: white; padding: 25px; border-radius: 12px; border-left: 5px solid var(--escala-accent); margin-bottom: 20px; }
@@ -871,39 +948,68 @@ button, .action-btn, .filter-btn, .btn-add-eq, .slicer-btn {
             <div id="training-grid-container" class="module-list"></div>
         </div>
 
-        <div id="view-equipamentos" class="view-section">
+       <div id="view-equipamentos" class="view-section">
             <div class="section-dark-header">
-                <!-- TÍTULO EDITÁVEL AGORA -->
                 <h2 contenteditable="true" id="equip_main_title" onblur="globalEditor.save(this)">CONTROLE DE EQUIPAMENTOS</h2>
             </div>
             <div class="equip-grid-container">
+                
                 <div class="equip-box">
                     <div class="equip-box-header bg-ext">
-                        <!-- TÍTULO EXTINTORES EDITÁVEL -->
                         <span><i class="fa-solid fa-fire-extinguisher"></i> <span contenteditable="true" id="eq_title_ext" onblur="globalEditor.save(this)">Extintores</span></span>
                         <button class="btn-add-eq" onclick="equipApp.add('ext')">+ Add</button>
                     </div>
-                    <table class="equip-table"><tbody id="tb-ext"></tbody></table>
+                    <table class="equip-table">
+                        <thead>
+                            <tr>
+                                <th>ITEM / ID</th>
+                                <th>LOCALIZAÇÃO</th>
+                                <th>VAL.</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-ext"></tbody>
+                    </table>
                 </div>
+
                 <div class="equip-box">
                     <div class="equip-box-header bg-hid">
-                        <!-- TÍTULO HIDRANTES EDITÁVEL -->
                         <span><i class="fa-solid fa-faucet"></i> <span contenteditable="true" id="eq_title_hid" onblur="globalEditor.save(this)">Hidrantes</span></span>
                         <button class="btn-add-eq" onclick="equipApp.add('hid')">+ Add</button>
                     </div>
-                    <table class="equip-table"><tbody id="tb-hid"></tbody></table>
+                    <table class="equip-table">
+                        <thead>
+                            <tr>
+                                <th>ITEM / ID</th>
+                                <th>LOCALIZAÇÃO</th>
+                                <th>VAL.</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-hid"></tbody>
+                    </table>
                 </div>
+
                 <div class="equip-box">
                     <div class="equip-box-header bg-luz">
-                        <!-- TÍTULO LUMINÁRIAS EDITÁVEL -->
                         <span><i class="fa-regular fa-lightbulb"></i> <span contenteditable="true" id="eq_title_luz" onblur="globalEditor.save(this)">Luminárias</span></span>
                         <button class="btn-add-eq" onclick="equipApp.add('luz')">+ Add</button>
                     </div>
-                    <table class="equip-table"><tbody id="tb-luz"></tbody></table>
+                    <table class="equip-table">
+                        <thead>
+                            <tr>
+                                <th>ITEM / ID</th>
+                                <th>LOCALIZAÇÃO</th>
+                                <th>STATUS</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-luz"></tbody>
+                    </table>
                 </div>
+
             </div>
         </div>
-
         <div id="view-normas" class="view-section">
             <div class="section-dark-header">
                 <!-- TÍTULO NORMAS EDITÁVEL -->
@@ -1830,5 +1936,3 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
     </script>
 </body>
 </html>
-
-
