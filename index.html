@@ -1363,6 +1363,11 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                 this.teams[type][memberIdx].name = newName;
                 this.saveData();
             },
+            updateId(type, memberIdx, newId) {
+    this.teams[type][memberIdx].id = newId;
+    this.saveData();
+},
+
 
             render() {
                 const m = this.currentMonth;
@@ -1393,7 +1398,8 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                 const createRow = (person, type, pIdx) => {
                     let html = `<tr>
                         <td class="col-sticky" contenteditable="true" onblur="escalaApp.updateName('${type}', ${pIdx}, this.innerText)">${person.name}</td>
-                        <td class="col-id">${person.id}</td>`;
+                       <td class="col-id" contenteditable="true" onblur="escalaApp.updateId('${type}', ${pIdx}, this.innerText)">${person.id}</td>
+`;
                     
                     let currentWd = startDay;
                     for(let i=0; i<daysTotal; i++) {
@@ -1921,4 +1927,5 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
 
 </body>
 </html>
+
 
