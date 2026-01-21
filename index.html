@@ -1092,7 +1092,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
-        // === 1. CONFIGURAÇÃO E INICIALIZAÇÃO DO FIREBASE ===
+        // === 1. CONFIGURAÇÃO FIREBASE ===
         const firebaseConfig = {
             apiKey: "AIzaSyCXUR657SzAjKtaKRsRm9Gu6RpjcxCh1wc",
             authDomain: "brigada-hsm.firebaseapp.com",
@@ -1103,11 +1103,9 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             appId: "1:655017033672:web:35173156593dd3a32d0afd"
         };
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        console.log("🔥 Firebase Conectado e Monitorando...");
+        console.log("🔥 Firebase Conectado - Sistema Completo");
 
         // === CONFIGURAÇÃO GERAL ===
         const CONFIG = {
@@ -1139,44 +1137,33 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             ]
         };
 
-        // === EDITOR GLOBAL (Conectado ao Firebase) ===
+        // === EDITOR GLOBAL ===
         const globalEditor = {
             data: {},
             init() {
-                // Escuta alterações em tempo real no nó 'global_edits'
                 db.ref('global_edits').on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val) {
                         this.data = val;
                         Object.keys(this.data).forEach(id => {
                             const el = document.getElementById(id);
-                            if(el && document.activeElement !== el) { // Não atualiza se o usuário estiver digitando
-                                el.innerText = this.data[id];
-                            }
+                            if(el && document.activeElement !== el) el.innerText = this.data[id];
                         });
-                        // Atualiza nome no dashboard se necessário
                         if(this.data['header_hsm_text']) initDashboard();
                     }
                 });
             },
             save(element) {
                 if(!element.id) return;
-                // Salva no objeto local
-                this.data[element.id] = element.innerText;
-                // Envia para o Firebase
-                db.ref('global_edits').update({
-                    [element.id]: element.innerText
-                });
+                db.ref('global_edits').update({ [element.id]: element.innerText });
             },
             updateAvatar(newName) {
                 const avatar = document.getElementById('user_avatar_img');
-                if(avatar) {
-                    avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=dc2626&color=fff`;
-                }
+                if(avatar) avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=dc2626&color=fff`;
             }
         };
 
-        // === ICON PICKER (Original mantido) ===
+        // === ICON PICKER ===
         const iconPicker = {
             currentEl: null,
             icons: ["fa-fire", "fa-fire-extinguisher", "fa-user-shield", "fa-kit-medical", "fa-house-medical", "fa-triangle-exclamation", "fa-check", "fa-xmark", "fa-clipboard-check", "fa-calendar-days", "fa-graduation-cap", "fa-book", "fa-helmet-safety", "fa-walkie-talkie", "fa-bell", "fa-file-signature", "fa-print", "fa-gear", "fa-chart-pie", "fa-hospital", "fa-plane-departure", "fa-file-contract"],
@@ -1223,11 +1210,12 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             const target = document.getElementById('view-' + viewName);
             if(target) target.classList.add('active');
             
-            // Correção específica para o layout Flex do painel de indicadores
+            // Lógica para mostrar painel de indicadores corretamente
             const indView = document.getElementById('view-indicadores');
             if(indView) {
                 if(viewName === 'indicadores') {
                     indView.style.display = 'flex';
+                    // Chama a inicialização dos indicadores se existir
                     if (window.initIndicadoresSystem) window.initIndicadoresSystem();
                 } else {
                     indView.style.display = 'none';
@@ -1239,8 +1227,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                 element.classList.add('active');
             }
             
-            // As renderizações agora são automáticas via listener do Firebase, 
-            // mas forçamos um refresh visual caso necessário
+            // Renderiza as views conforme necessário
             if(viewName === 'escala') escalaApp.render();
             if(viewName === 'treinamentos') treinamentosApp.updateProgress();
             if(viewName === 'equipamentos') equipApp.render();
@@ -1248,108 +1235,114 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             if(viewName === 'dashboard') initDashboard();
         }
 
-        // === DASHBOARD LOGIC (Conectado ao Firebase) ===
+        // === DASHBOARD LOGIC (Inteligente - Pega sempre o dia de hoje) ===
         function initDashboard() {
             const now = new Date();
             const d = now.getDate();
             const m = now.getMonth();
             const weekNames = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
             
-            // Busca o texto do cabeçalho direto do objeto global já sincronizado
             const headerText = globalEditor.data['header_hsm_text'] || "HOSPITAL SANTA MARTA";
-
             const dashDateEl = document.getElementById('dashboardDate');
             if(dashDateEl) {
                 dashDateEl.innerHTML = `<span id="header_hsm_text" contenteditable="true" onblur="globalEditor.save(this)">${headerText}</span><br><span style="color:#1e293b; font-size:14px;">${weekNames[now.getDay()]}, ${d} DE ${CONFIG.months[m].substring(0,3)}</span>`;
             }
             
             const shiftLbl = document.getElementById('shiftLabel');
-            if(shiftLbl) shiftLbl.innerText = `Escala ativa para ${d}/${m+1}/${CONFIG.year}`;
+            if(shiftLbl) shiftLbl.innerText = `Plantão ativo em ${d}/${m+1}/${CONFIG.year}`;
 
-            const active = [];
+            // Busca os dados do mês atual para o dashboard (independente da aba Escala)
+            const currentMonthKey = `escala_${CONFIG.year}_${m}`;
             
-            // Usa os dados da memória do escalaApp (que vem do Firebase)
-            let teamsSource = escalaApp.teams;
-            
-            // Se ainda não carregou do Firebase, usa padrão para não quebrar
-            if (!teamsSource || !teamsSource.day) {
-                teamsSource = DEFAULT_DATA;
-            }
+            db.ref(currentMonthKey).once('value').then((snapshot) => {
+                let todayTeams = snapshot.val();
+                if (!todayTeams) todayTeams = DEFAULT_DATA;
 
-            const check = (list, role) => {
-                if(!list) return;
-                list.forEach(p => {
-                    let st = 2;
-                    if(p.ptr && p.ptr.length >= 28) {
-                         st = p.ptr[d - 1] !== undefined ? p.ptr[d - 1] : 2;
-                    } 
-                    else if(p.ptr) {
-                         st = p.ptr[(d - 1) % p.ptr.length];
-                    }
-
-                    if(st === 0 || st === 1) { 
-                        active.push({n: p.name, r: role, st: st});
-                    }
-                });
-            };
-
-            if(teamsSource.day) check(teamsSource.day, "Brigadista (Dia)");
-            if(teamsSource.night) check(teamsSource.night, "Brigadista (Noite)");
-
-            const container = document.getElementById('teamListContainer');
-            if(container) {
-                container.innerHTML = "";
-                if(active.length === 0) {
-                    container.innerHTML = "<div style='text-align:center; font-size:12px; opacity:0.7; padding:10px;'>Ninguém escalado hoje (Folga Geral).</div>";
-                } else {
-                    active.forEach(p => {
-                        const initials = p.n.split(" ").map(n=>n[0]).join("").substring(0,2);
-                        container.innerHTML += `
-                            <div class="team-member" style="border-left: 3px solid ${p.st===0 ? '#10b981' : '#3b82f6'}">
-                                <img src="https://ui-avatars.com/api/?name=${initials}&background=random&color=fff" alt="${p.n}">
-                                <div style="line-height:1.2;">
-                                    <h6 style="font-size:13px; font-weight:600;">${p.n.split(" ")[0] + " " + (p.n.split(" ")[1] || "")}</h6>
-                                    <span style="font-size:10px; opacity:0.7;">${p.r}</span>
-                                </div>
-                            </div>
-                        `;
+                const active = [];
+                const check = (list, role) => {
+                    if(!list) return;
+                    list.forEach(p => {
+                        let st = 2; // Padrão Folga
+                        if(p.ptr && p.ptr[d-1] !== undefined) {
+                            st = p.ptr[d-1];
+                        } else if (p.ptr) {
+                            st = p.ptr[(d - 1) % p.ptr.length];
+                        }
+                        if(st === 0 || st === 1) { 
+                            active.push({n: p.name, r: role, st: st});
+                        }
                     });
+                };
+
+                if(todayTeams.day) check(todayTeams.day, "Brigadista (Dia)");
+                if(todayTeams.night) check(todayTeams.night, "Brigadista (Noite)");
+
+                const container = document.getElementById('teamListContainer');
+                if(container) {
+                    container.innerHTML = "";
+                    if(active.length === 0) {
+                        container.innerHTML = "<div style='text-align:center; font-size:12px; opacity:0.7; padding:10px;'>Ninguém escalado hoje (Folga Geral).</div>";
+                    } else {
+                        active.forEach(p => {
+                            const initials = p.n.split(" ").map(n=>n[0]).join("").substring(0,2);
+                            container.innerHTML += `
+                                <div class="team-member" style="border-left: 3px solid ${p.st===0 ? '#10b981' : '#3b82f6'}">
+                                    <img src="https://ui-avatars.com/api/?name=${initials}&background=random&color=fff" alt="${p.n}">
+                                    <div style="line-height:1.2;">
+                                        <h6 style="font-size:13px; font-weight:600;">${p.n.split(" ")[0] + " " + (p.n.split(" ")[1] || "")}</h6>
+                                        <span style="font-size:10px; opacity:0.7;">${p.r}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
                 }
-            }
+            });
         }
 
-        // === ESCALA APP (Conectado ao Firebase) ===
+        // === ESCALA APP (CORRIGIDA: Salva cada mês separado) ===
         const escalaApp = {
             currentMonth: 0,
-            teams: JSON.parse(JSON.stringify(DEFAULT_DATA)), // Começa com padrão até o Firebase carregar
+            teams: {}, 
+            dbRef: null,
 
             init() {
                 const now = new Date();
                 if(now.getFullYear() === CONFIG.year) this.currentMonth = now.getMonth();
-                
-                // CONEXÃO FIREBASE: Escuta o nó 'escala_v1'
-                db.ref('escala_v1').on('value', (snapshot) => {
+                this.loadMonthData(this.currentMonth);
+            },
+
+            loadMonthData(monthIndex) {
+                if (this.dbRef) this.dbRef.off(); // Desliga listener antigo
+
+                // Cria chave única: escala_2026_0, escala_2026_1...
+                const monthKey = `escala_${CONFIG.year}_${monthIndex}`;
+                this.dbRef = db.ref(monthKey);
+
+                this.dbRef.on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
                         this.teams = data;
-                        this.render();
-                        initDashboard(); // Atualiza o widget da home quando a escala muda
                     } else {
-                        // Se não tem nada no banco, salva o padrão inicial
-                        this.expandPatterns(this.teams.day);
-                        this.expandPatterns(this.teams.night);
-                        this.saveData();
+                        // Se o mês estiver vazio, cria baseado no padrão
+                        this.teams = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                        this.expandPatternsForMonth(this.teams.day, monthIndex);
+                        this.expandPatternsForMonth(this.teams.night, monthIndex);
+                        this.dbRef.set(this.teams);
                     }
+                    this.render();
                 });
             },
 
-            expandPatterns(teamList) {
+            expandPatternsForMonth(teamList, monthIndex) {
                 if(!teamList) return;
+                const daysInMonth = new Date(CONFIG.year, monthIndex + 1, 0).getDate();
                 teamList.forEach(member => {
-                    if (member.ptr.length < 32) {
+                    if (!member.ptr || member.ptr.length < daysInMonth) {
+                        const basePattern = member.ptr || [2];
                         const newPtr = [];
-                        for (let i = 0; i < 32; i++) {
-                            newPtr.push(member.ptr[i % member.ptr.length]);
+                        for (let i = 0; i < daysInMonth; i++) {
+                            newPtr.push(basePattern[i % basePattern.length]);
                         }
                         member.ptr = newPtr;
                     }
@@ -1357,9 +1350,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             },
 
             saveData() {
-                // Envia para o Firebase
-                db.ref('escala_v1').set(this.teams);
-                // Não precisa chamar render() aqui, pois o listener .on('value') vai detectar a mudança e chamar o render
+                this.dbRef.set(this.teams);
             },
 
             toggle(type, memberIdx, dayIdx) {
@@ -1406,9 +1397,10 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                     
                     let currentWd = startDay;
                     for(let i=0; i<daysTotal; i++) {
-                        const code = person.ptr[i] !== undefined ? person.ptr[i] : 2;
+                        const code = (person.ptr && person.ptr[i] !== undefined) ? person.ptr[i] : 2;
                         const st = CONFIG.status.find(s => s.code === code) || CONFIG.status[2];
                         const isWeekend = (currentWd===0 || currentWd===6);
+                        
                         html += `<td class="cell-status ${st.class} ${isWeekend && code !== 3 ? 'weekend-col' : ''}"
                                      onclick="escalaApp.toggle('${type}', ${pIdx}, ${i})">
                                      ${st.label}
@@ -1451,20 +1443,20 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                 const next = this.currentMonth + dir;
                 if(next >= 0 && next <= 11) {
                     this.currentMonth = next;
-                    this.render();
+                    this.loadMonthData(this.currentMonth);
                 }
             },
             resetMonth() { 
-                if(confirm("ATENÇÃO: Isso vai apagar todas as edições e restaurar o padrão. Confirmar?")) {
+                if(confirm("ATENÇÃO: Isso vai zerar a escala DESTE MÊS. Confirmar?")) {
                     this.teams = JSON.parse(JSON.stringify(DEFAULT_DATA));
-                    this.expandPatterns(this.teams.day);
-                    this.expandPatterns(this.teams.night);
+                    this.expandPatternsForMonth(this.teams.day, this.currentMonth);
+                    this.expandPatternsForMonth(this.teams.night, this.currentMonth);
                     this.saveData();
                 }
             }
         };
 
-        // === TREINAMENTOS APP (Conectado ao Firebase) ===
+        // === TREINAMENTOS APP ===
         const treinamentosApp = {
             modules: [
                 { id: 1, title: "Competências Essenciais", subtitle: "Fundamentos e Postura Padrão", category: "Comportamental", type: "comp", theory: ["Alça Fechada (Closed Loop): Protocolo obrigatório.", "O Saca-Rolha: 1. EPI ok? 2. Cena segura? 3. Rádio funciona?", "Disciplina Sonora: Rádio é para comunicação tática curta."], drill: "Exercício 'Cego': Aluno de costas recebe 3 ordens via rádio com ruído de fundo.", mistakes: "Correr sem rádio; Gritar ordens sobrepostas.", key: "Na dúvida, não corra. Pare, respire, pense, aja." },
@@ -1477,7 +1469,6 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             completed: [],
 
             init() {
-                // CONEXÃO FIREBASE: Treinamentos
                 db.ref('treinamentos_2026').on('value', (snapshot) => {
                     const data = snapshot.val();
                     this.completed = data || [];
@@ -1496,8 +1487,6 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                 const index = this.completed.indexOf(id);
                 if (index > -1) this.completed.splice(index, 1);
                 else this.completed.push(id);
-                
-                // Envia para o Firebase
                 db.ref('treinamentos_2026').set(this.completed);
             },
 
@@ -1520,7 +1509,6 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                 const progText = document.getElementById('prog-text');
                 const progPerc = document.getElementById('prog-percent');
                 const fill = document.getElementById('fill');
-                
                 if(progText) progText.innerText = count;
                 if(progPerc) progPerc.innerText = `${pct}%`;
                 if(fill) fill.style.width = `${pct}%`;
@@ -1583,11 +1571,10 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             }
         };
 
-        // === EQUIPAMENTOS APP (Conectado ao Firebase) ===
+        // === EQUIPAMENTOS APP (LAYOUT VERTICAL) ===
         const equipApp = {
             data: [],
             init() {
-                // CONEXÃO FIREBASE: Equipamentos
                 db.ref('equipamentos').on('value', (snapshot) => {
                     const val = snapshot.val();
                     if(val) this.data = val;
@@ -1629,7 +1616,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                             <td contenteditable="true" onblur="equipApp.update(${i.oIdx}, 'id', this.innerText)" style="font-weight:700;">${i.id}</td>
                             <td contenteditable="true" onblur="equipApp.update(${i.oIdx}, 'loc', this.innerText)">${i.loc}</td>
                             <td contenteditable="true" onblur="equipApp.update(${i.oIdx}, 'val', this.innerText)">${i.val}</td>
-                            <td style="width:30px; text-align:center;"><i class="fa-solid fa-trash" style="color:#ef4444; cursor:pointer;" onclick="equipApp.del(${i.oIdx})"></i></td>
+                            <td style="width:5%; text-align:center;"><i class="fa-solid fa-trash" style="color:#ef4444; cursor:pointer;" onclick="equipApp.del(${i.oIdx})"></i></td>
                         </tr>
                     `).join('');
                 };
@@ -1639,7 +1626,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             }
         };
 
-        // === NORMAS APP (Original mantido) ===
+        // === NORMAS APP ===
         const normasApp = {
             list: [
                 {t:"NR 01 - Disposições Gerais", d:"Estabelece o campo de aplicação e termos comuns a todas as NRs."},
@@ -1666,12 +1653,10 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
                 }
             }
         };
-
-        /* ==========================================================================
-           LÓGICA DO DASHBOARD DE INDICADORES
-           (Restaurada Completamente do seu arquivo Original)
+/* ==========================================================================
+           LÓGICA DO DASHBOARD DE INDICADORES (COMPLETA)
            ========================================================================== */
-
+        
         // 1. BANCO DE DADOS
         var DATABASE = {
             '2025': {
@@ -1730,11 +1715,11 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             return { conformidade: yearData.conformidade.values[monthIndex], totalObstrucoes: yearData.obstrucoes.extintores[monthIndex] + yearData.obstrucoes.hidrantes[monthIndex], insights: yearData.insights[month], execucao: yearData.execucaoMensal[mesLabel] || {} };
         }
 
-        // 2. HELPERS
+        // HELPERS
         function formatTime(seconds) { var mins = Math.floor(seconds / 60); var secs = seconds % 60; return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0'); }
         function animateValue(elementId, newValue) { var element = document.getElementById(elementId); if (!element) return; element.style.opacity = '0'; element.style.transform = 'translateY(-10px)'; element.style.transition = 'all 0.3s ease'; setTimeout(function() { element.textContent = newValue; element.style.opacity = '1'; element.style.transform = 'translateY(0)'; }, 150); }
 
-        // 3. CHART MANAGER
+        // CHART MANAGER
         var ChartManager = {
             instances: {},
             init: function() { Chart.defaults.font.family = "'Inter', sans-serif"; Chart.defaults.color = '#64748b'; Chart.defaults.plugins.legend.display = false; },
@@ -1764,7 +1749,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             }
         };
 
-        // 4. COMPONENTES
+        // COMPONENTES
         var Components = {
             renderHeader: function() {
                 var header = document.getElementById('app-header');
@@ -1817,7 +1802,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             }
         };
 
-        // 5. VIEWS
+        // VIEWS
         var Views = {
             renderOverview: function() {
                 var container = document.getElementById('dashboard-content');
@@ -1914,7 +1899,7 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             AppState.currentYear = year;
             Components.updateYearSlicerState(year);
             Components.renderMonthSlicers(year);
-            switchTab(AppState.currentTab); // Reload view
+            switchTab(AppState.currentTab); 
         };
 
         window.filterDashboard = function(month) {
@@ -1925,7 +1910,6 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
 
         // === INICIALIZAÇÃO GERAL ===
         window.onload = () => {
-            // Inicializa componentes básicos (o restante é carregado pelo Firebase)
             iconPicker.init();
             globalEditor.init();
             escalaApp.init(); 
@@ -1934,5 +1918,6 @@ De forma geral, o período de janeiro a novembro de 2025 mostra uma brigada madu
             treinamentosApp.init();
         };
     </script>
+
 </body>
 </html>
